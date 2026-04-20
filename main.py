@@ -11,13 +11,6 @@ app = Flask(__name__)
 board = Board()
 
 
-def seed_demo_data() -> None:
-    first_task = board.add_task("Create Task dataclass")
-    board.add_task("Create Board class")
-    board.add_task("Open planner in browser")
-    board.mark_task_done(first_task.id)
-
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -36,7 +29,6 @@ def mark_done(task_id: str):
 
 
 def main() -> None:
-    seed_demo_data()
     app.run(debug=True, port=5000)
 
 

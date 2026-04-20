@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Create Task dataclass",
+    "id": "f0c6161c-2d9e-48fd-a40e-a04287848d2e",
+    "done": true
+  },
+  {
+    "title": "Create Board class",
+    "id": "6e6f0c1d-fa48-448b-9ddc-b6c419c0a117",
+    "done": false
+  },
+  {
+    "title": "Open planner in browser",
+    "id": "127dd96e-8b97-42d9-b997-e6438ffbf999",
+    "done": false
+  },
+  {
+    "title": "1. Поздравить себя с прогрессом в Python.",
+    "id": "c34936ac-edb2-4108-b7af-60b180cc006b",
+    "done": true
+  },
+  {
+    "title": "2. Продолжить изучение Python.",
+    "id": "a84e07d9-4adb-4dc3-9417-854b0df5d050",
+    "done": false
+  }
+]
