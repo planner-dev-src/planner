@@ -17,8 +17,30 @@ class Board:
         if not self.storage_path.exists():
             return
 
-        data = json.loads(self.storage_path.read_text(encoding="utf-8"))
-        self.tasks = [Task(**item) for item in data]
+        try:
+            raw_text = self.storage_path.read_text(encoding="utf-8").strip()
+            if not raw_text:
+                self.tasks = []
+                return
+
+            data = json.loads(raw_text)
+
+            if not isinstance(data, list):
+                raise ValueError("tasks.json must contain a list")
+
+            loaded_tasks: list[Task] = []
+            for item in data:
+                if not isinstance(item, dict):
+                    raise ValueError("Each task must be an object")
+
+                loaded_tasks.append(Task(**item))
+
+            self.tasks = loaded_tasks
+
+        except (json.JSONDecodeError, ValueError, TypeError):
+            backup_path = self.storage_path.with_suffix(".broken.json")
+            self.storage_path.rename(backup_path)
+            self.tasks = []
 
     def _save(self) -> None:
         data = [asdict(task) for task in self.tasks]
