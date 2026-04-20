@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Планировщик</title>
+    <title>Planner</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,6 +11,7 @@
             background: #f7f7f7;
             color: #222;
         }
+
         .container {
             max-width: 720px;
             margin: 0 auto;
@@ -19,14 +20,17 @@
             border-radius: 12px;
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
         }
+
         h1 {
             margin-top: 0;
         }
-        form {
+
+        .add-form {
             display: flex;
             gap: 10px;
             margin: 20px 0 24px;
         }
+
         input[type="text"] {
             flex: 1;
             padding: 12px 14px;
@@ -34,6 +38,7 @@
             border-radius: 10px;
             font-size: 16px;
         }
+
         button {
             padding: 12px 16px;
             border: none;
@@ -43,13 +48,16 @@
             font-size: 16px;
             cursor: pointer;
         }
+
         button:hover {
             background: #1f57bb;
         }
+
         ul {
             padding-left: 0;
             list-style: none;
         }
+
         li {
             padding: 12px 14px;
             border: 1px solid #ddd;
@@ -57,27 +65,43 @@
             margin-bottom: 10px;
             background: #fafafa;
         }
+
         .done {
             color: #666;
             text-decoration: line-through;
         }
+
         .meta {
             font-size: 12px;
             color: #888;
             margin-top: 6px;
         }
+
+        .task-form {
+            margin-top: 10px;
+        }
+
+        .task-form button {
+            background: #4f7f39;
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        .task-form button:hover {
+            background: #3e672c;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Планировщик</h1>
-        <p>Первая версия планировщика.</p>
+        <h1>Planner</h1>
+        <p>First browser version of your planner.</p>
 
-        <form method="post">
+        <form method="post" class="add-form">
             <input
                 type="text"
                 name="title"
-                placeholder="Введите новую задачу"
+                placeholder="Enter a new task"
                 required
             >
             <button type="submit">Add task</button>
@@ -86,10 +110,23 @@
         <ul>
             {% for task in tasks %}
             <li>
-                <div class="{{ 'done' if task.done else '' }}">
-                    {% if task.done %}✔{% else %}○{% endif %} {{ task.title }}
+                {% if task.done %}
+                <div class="done">
+                    ✔ {{ task.title }}
                 </div>
+                {% else %}
+                <div>
+                    ○ {{ task.title }}
+                </div>
+                {% endif %}
+
                 <div class="meta">id={{ task.id }}</div>
+
+                {% if not task.done %}
+                <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post" class="task-form">
+                    <button type="submit">Mark done</button>
+                </form>
+                {% endif %}
             </li>
             {% endfor %}
         </ul>

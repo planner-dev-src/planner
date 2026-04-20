@@ -8,9 +8,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from planner.board import Board
 
 app = Flask(__name__)
-app.config["TEMPLATES_AUTO_RELOAD"] = True
-app.jinja_env.auto_reload = True
-
 board = Board()
 
 
@@ -30,6 +27,12 @@ def index():
         return redirect(url_for("index"))
 
     return render_template("index.html", tasks=board.list_tasks())
+
+
+@app.route("/tasks/<task_id>/done", methods=["POST"])
+def mark_done(task_id: str):
+    board.mark_task_done(task_id)
+    return redirect(url_for("index"))
 
 
 def main() -> None:
