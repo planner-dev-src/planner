@@ -28,6 +28,12 @@ def mark_done(task_id: str):
     return redirect(url_for("index"))
 
 
+@app.route("/tasks/<task_id>/delete", methods=["POST"])
+def delete_task(task_id: str):
+    board.delete_task(task_id)
+    return redirect(url_for("index"))
+
+
 def main() -> None:
     app.run(debug=True, use_reloader=False, port=5000)
 

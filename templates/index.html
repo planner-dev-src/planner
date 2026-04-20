@@ -2,134 +2,153 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Planner</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f7f7f7;
+            max-width: 720px;
+            margin: 40px auto;
+            padding: 0 16px;
             color: #222;
         }
 
-        .container {
-            max-width: 720px;
-            margin: 0 auto;
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+        h1 {
+            margin-bottom: 8px;
         }
 
-        h1 {
-            margin-top: 0;
+        p {
+            color: #555;
+        }
+
+        form {
+            margin: 0;
         }
 
         .add-form {
             display: flex;
-            gap: 10px;
-            margin: 20px 0 24px;
+            gap: 8px;
+            margin: 24px 0;
         }
 
-        input[type="text"] {
+        .add-form input[type="text"] {
             flex: 1;
-            padding: 12px 14px;
+            padding: 10px 12px;
             border: 1px solid #ccc;
-            border-radius: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 12px 16px;
-            border: none;
-            border-radius: 10px;
-            background: #2d6cdf;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1f57bb;
+            border-radius: 6px;
         }
 
         ul {
-            padding-left: 0;
             list-style: none;
+            padding: 0;
         }
 
         li {
-            padding: 12px 14px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #ddd;
         }
 
-        .done {
-            color: #666;
+        .task-title {
+            flex: 1;
+        }
+
+        .task-title.done {
             text-decoration: line-through;
+            color: #777;
         }
 
-        .meta {
-            font-size: 12px;
-            color: #888;
-            margin-top: 6px;
+        .task-actions {
+            display: flex;
+            gap: 8px;
         }
 
-        .task-form {
-            margin-top: 10px;
-        }
-
-        .task-form button {
-            background: #4f7f39;
-            font-size: 14px;
+        .btn {
+            border: none;
+            border-radius: 6px;
             padding: 8px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
         }
 
-        .task-form button:hover {
-            background: #3e672c;
+        .btn-add {
+            background-color: #2563eb;
+        }
+
+        .btn-add:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-done {
+            background-color: #16a34a;
+        }
+
+        .btn-done:hover {
+            background-color: #15803d;
+        }
+
+        .btn-delete {
+            background-color: #dc2626;
+        }
+
+        .btn-delete:hover {
+            background-color: #b91c1c;
+        }
+
+        .empty-state {
+            color: #777;
+            font-style: italic;
+            margin-top: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Planner</h1>
-        <p>First browser version of your planner.</p>
+    <h1>Planner</h1>
+    <p>First browser version of your planner.</p>
 
-        <form method="post" class="add-form">
-            <input
-                type="text"
-                name="title"
-                placeholder="Enter a new task"
-                required
-            >
-            <button type="submit">Add task</button>
-        </form>
+    <form method="post" class="add-form">
+        <input
+            type="text"
+            name="title"
+            placeholder="Enter a new task"
+            required
+        >
+        <button type="submit" class="btn btn-add">Add task</button>
+    </form>
 
+    {% if tasks %}
         <ul>
             {% for task in tasks %}
-            <li>
-                {% if task.done %}
-                <div class="done">
-                    ✔ {{ task.title }}
-                </div>
-                {% else %}
-                <div>
-                    ○ {{ task.title }}
-                </div>
-                {% endif %}
+                <li>
+                    <span class="task-title {% if task.done %}done{% endif %}">
+                        {{ task.title }}
+                    </span>
 
-                <div class="meta">id={{ task.id }}</div>
+                    <div class="task-actions">
+                        {% if not task.done %}
+                            <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post">
+                                <button type="submit" class="btn btn-done">Done</button>
+                            </form>
+                        {% endif %}
 
-                {% if not task.done %}
-                <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post" class="task-form">
-                    <button type="submit">Mark done</button>
-                </form>
-                {% endif %}
-            </li>
+                        <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                            <button
+                                type="submit"
+                                class="btn btn-delete"
+                                onclick="return confirm('Delete this task?')"
+                            >
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </li>
             {% endfor %}
         </ul>
-    </div>
+    {% else %}
+        <p class="empty-state">No tasks yet.</p>
+    {% endif %}
 </body>
 </html>
