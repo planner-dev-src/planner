@@ -1,14 +1,14 @@
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from flask import Flask, render_template, request, redirect, url_for
-
 from planner.board import Board
 
 app = Flask(__name__)
-board = Board()
+board = Board(storage_path=PROJECT_ROOT / "tasks.json")
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -29,7 +29,7 @@ def mark_done(task_id: str):
 
 
 def main() -> None:
-    app.run(debug=True, port=5000)
+    app.run(debug=True, use_reloader=False, port=5000)
 
 
 if __name__ == "__main__":
