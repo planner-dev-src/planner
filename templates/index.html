@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Planner</title>
+    <title>Planner Board</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 720px;
-            margin: 40px auto;
-            padding: 0 16px;
+            margin: 32px;
             color: #222;
+            background: #f5f7fb;
         }
 
         h1 {
@@ -20,78 +19,44 @@
             color: #555;
         }
 
+        .top-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0 32px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
         form {
             margin: 0;
         }
 
-        .add-form {
+        .stack-form {
             display: flex;
-            gap: 8px;
-            margin: 24px 0 16px;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .add-form input[type="text"] {
-            flex: 1;
+        input[type="text"],
+        select {
             padding: 10px 12px;
             border: 1px solid #ccc;
             border-radius: 6px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-link {
-            display: inline-block;
-            padding: 8px 12px;
-            border-radius: 999px;
-            text-decoration: none;
-            border: 1px solid #ccc;
-            color: #333;
-            background: #fff;
             font-size: 14px;
-        }
-
-        .filter-link:hover {
-            background: #f3f4f6;
-        }
-
-        .filter-link.active {
-            background: #2563eb;
-            border-color: #2563eb;
-            color: white;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .task-title {
-            flex: 1;
-        }
-
-        .task-title.done {
-            text-decoration: line-through;
-            color: #777;
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            background: white;
         }
 
         .btn {
@@ -105,117 +70,220 @@
             text-decoration: none;
         }
 
-        .btn-add {
+        .btn-primary {
             background-color: #2563eb;
         }
 
-        .btn-add:hover {
+        .btn-primary:hover {
             background-color: #1d4ed8;
         }
 
-        .btn-done {
-            background-color: #16a34a;
-        }
-
-        .btn-done:hover {
-            background-color: #15803d;
-        }
-
-        .btn-edit {
+        .btn-warn {
             background-color: #d97706;
         }
 
-        .btn-edit:hover {
+        .btn-warn:hover {
             background-color: #b45309;
         }
 
-        .btn-delete {
+        .btn-danger {
             background-color: #dc2626;
         }
 
-        .btn-delete:hover {
+        .btn-danger:hover {
             background-color: #b91c1c;
         }
 
-        .empty-state {
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        .btn-success {
+            background-color: #16a34a;
+        }
+
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+
+        .board {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .column {
+            min-width: 280px;
+            max-width: 280px;
+            background: #ffffff;
+            border: 1px solid #dbe1ea;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .column-header h3 {
+            margin: 0;
+            font-size: 18px;
+            word-break: break-word;
+        }
+
+        .column-actions {
+            flex-shrink: 0;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .task-title {
+            font-size: 15px;
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .task-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .task-actions form {
+            display: inline-block;
+        }
+
+        .empty-column {
             color: #777;
             font-style: italic;
-            margin-top: 16px;
+            margin: 0;
+        }
+
+        @media (max-width: 900px) {
+            .top-panel {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                margin: 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Planner</h1>
-    <p>First browser version of your planner.</p>
+    <h1>Planner Board</h1>
+    <p>Tasks are grouped by columns that you create yourself.</p>
 
-    <form method="post" class="add-form">
-        <input
-            type="text"
-            name="title"
-            placeholder="Enter a new task"
-            required
-        >
-        <button type="submit" class="btn btn-add">Add task</button>
-    </form>
+    <div class="top-panel">
+        <div class="panel">
+            <h2>Add column</h2>
+            <form action="{{ url_for('add_column') }}" method="post" class="stack-form">
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Column name"
+                    required
+                >
+                <button type="submit" class="btn btn-primary">Add column</button>
+            </form>
+        </div>
 
-    <div class="filters">
-        <a
-            href="{{ url_for('index', filter='all') }}"
-            class="filter-link {% if current_filter == 'all' %}active{% endif %}"
-        >
-            All
-        </a>
-        <a
-            href="{{ url_for('index', filter='active') }}"
-            class="filter-link {% if current_filter == 'active' %}active{% endif %}"
-        >
-            Active
-        </a>
-        <a
-            href="{{ url_for('index', filter='done') }}"
-            class="filter-link {% if current_filter == 'done' %}active{% endif %}"
-        >
-            Done
-        </a>
+        <div class="panel">
+            <h2>Add task</h2>
+            <form action="{{ url_for('add_task') }}" method="post" class="stack-form">
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="Task title"
+                    required
+                >
+
+                <select name="column_id" required>
+                    {% for column in columns %}
+                        <option value="{{ column.id }}">{{ column.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-primary">Add task</button>
+            </form>
+        </div>
     </div>
 
-    {% if tasks %}
-        <ul>
-            {% for task in tasks %}
-                <li>
-                    <span class="task-title {% if task.done %}done{% endif %}">
-                        {{ task.title }}
-                    </span>
-
-                    <div class="task-actions">
-                        {% if not task.done %}
-                            <form action="{{ url_for('mark_done', task_id=task.id, filter=current_filter) }}" method="post">
-                                <button type="submit" class="btn btn-done">Done</button>
-                            </form>
-                        {% endif %}
-
-                        <a
-                            href="{{ url_for('edit_task', task_id=task.id, filter=current_filter) }}"
-                            class="btn btn-edit"
-                        >
-                            Edit
-                        </a>
-
-                        <form action="{{ url_for('delete_task', task_id=task.id, filter=current_filter) }}" method="post">
-                            <button
-                                type="submit"
-                                class="btn btn-delete"
-                                onclick="return confirm('Delete this task?')"
-                            >
-                                Delete
-                            </button>
-                        </form>
+    <div class="board">
+        {% for column in columns %}
+            <section class="column">
+                <div class="column-header">
+                    <h3>{{ column.name }}</h3>
+                    <div class="column-actions">
+                        <a href="{{ url_for('edit_column', column_id=column.id) }}" class="btn btn-warn">Rename</a>
                     </div>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="empty-state">No tasks in this filter.</p>
-    {% endif %}
+                </div>
+
+                {% set column_tasks = tasks_by_column[column.id] %}
+
+                {% if column_tasks %}
+                    <div class="task-list">
+                        {% for task in column_tasks %}
+                            <article class="task-card">
+                                <div class="task-title">{{ task.title }}</div>
+
+                                <div class="task-actions">
+                                    <form action="{{ url_for('move_task_left', task_id=task.id) }}" method="post">
+                                        <button type="submit" class="btn btn-secondary">←</button>
+                                    </form>
+
+                                    <form action="{{ url_for('move_task_right', task_id=task.id) }}" method="post">
+                                        <button type="submit" class="btn btn-secondary">→</button>
+                                    </form>
+
+                                    {% if column.id != columns[-1].id %}
+                                        <form action="{{ url_for('mark_task_done', task_id=task.id) }}" method="post">
+                                            <button type="submit" class="btn btn-success">Done</button>
+                                        </form>
+                                    {% endif %}
+
+                                    <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warn">Edit</a>
+
+                                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger"
+                                            onclick="return confirm('Delete this task?')"
+                                        >
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-column">No tasks in this column yet.</p>
+                {% endif %}
+            </section>
+        {% endfor %}
+    </div>
 </body>
 </html>

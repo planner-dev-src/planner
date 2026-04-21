@@ -8,47 +8,55 @@ from flask import Flask, render_template, request, redirect, url_for, abort
 from planner.board import Board
 
 app = Flask(__name__)
-board = Board(storage_path=PROJECT_ROOT / "tasks.json")
+board = Board(storage_path=PROJECT_ROOT / "board.json")
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        if title:
-            board.add_task(title)
-        return redirect(url_for("index"))
-
-    current_filter = request.args.get("filter", "all").strip().lower()
-    all_tasks = board.list_tasks()
-
-    if current_filter == "active":
-        tasks = [task for task in all_tasks if not task.done]
-    elif current_filter == "done":
-        tasks = [task for task in all_tasks if task.done]
-    else:
-        current_filter = "all"
-        tasks = all_tasks
-
+    columns = board.list_columns()
+    tasks_by_column = {
+        column.id: board.get_tasks_by_column(column.id)
+        for column in columns
+    }
     return render_template(
         "index.html",
-        tasks=tasks,
-        current_filter=current_filter,
+        columns=columns,
+        tasks_by_column=tasks_by_column,
     )
 
 
-@app.route("/tasks/<task_id>/done", methods=["POST"])
-def mark_done(task_id: str):
-    board.mark_task_done(task_id)
-    current_filter = request.args.get("filter", "all")
-    return redirect(url_for("index", filter=current_filter))
+@app.route("/columns/add", methods=["POST"])
+def add_column():
+    name = request.form.get("name", "").strip()
+    if name:
+        board.add_column(name)
+    return redirect(url_for("index"))
 
 
-@app.route("/tasks/<task_id>/delete", methods=["POST"])
-def delete_task(task_id: str):
-    board.delete_task(task_id)
-    current_filter = request.args.get("filter", "all")
-    return redirect(url_for("index", filter=current_filter))
+@app.route("/columns/<column_id>/edit", methods=["GET", "POST"])
+def edit_column(column_id: str):
+    column = board.get_column(column_id)
+    if column is None:
+        abort(404)
+
+    if request.method == "POST":
+        new_name = request.form.get("name", "").strip()
+        if new_name:
+            board.update_column(column_id, new_name)
+            return redirect(url_for("index"))
+
+    return render_template("edit_column.html", column=column)
+
+
+@app.route("/tasks/add", methods=["POST"])
+def add_task():
+    title = request.form.get("title", "").strip()
+    column_id = request.form.get("column_id", "").strip()
+
+    if title and column_id:
+        board.add_task(title, column_id)
+
+    return redirect(url_for("index"))
 
 
 @app.route("/tasks/<task_id>/edit", methods=["GET", "POST"])
@@ -57,19 +65,45 @@ def edit_task(task_id: str):
     if task is None:
         abort(404)
 
-    current_filter = request.args.get("filter", "all")
+    columns = board.list_columns()
 
     if request.method == "POST":
         new_title = request.form.get("title", "").strip()
-        if new_title:
-            board.update_task(task_id, new_title)
-            return redirect(url_for("index", filter=current_filter))
+        new_column_id = request.form.get("column_id", "").strip()
+
+        if new_title and new_column_id:
+            board.update_task(task_id, new_title, new_column_id)
+            return redirect(url_for("index"))
 
     return render_template(
         "edit_task.html",
         task=task,
-        current_filter=current_filter,
+        columns=columns,
     )
+
+
+@app.route("/tasks/<task_id>/delete", methods=["POST"])
+def delete_task(task_id: str):
+    board.delete_task(task_id)
+    return redirect(url_for("index"))
+
+
+@app.route("/tasks/<task_id>/move-left", methods=["POST"])
+def move_task_left(task_id: str):
+    board.move_task_left(task_id)
+    return redirect(url_for("index"))
+
+
+@app.route("/tasks/<task_id>/move-right", methods=["POST"])
+def move_task_right(task_id: str):
+    board.move_task_right(task_id)
+    return redirect(url_for("index"))
+
+
+@app.route("/tasks/<task_id>/done", methods=["POST"])
+def mark_task_done(task_id: str):
+    board.move_task_to_done(task_id)
+    return redirect(url_for("index"))
 
 
 def main() -> None:
