@@ -48,6 +48,12 @@ def edit_column(column_id: str):
     return render_template("edit_column.html", column=column)
 
 
+@app.route("/columns/<column_id>/delete", methods=["POST"])
+def delete_column(column_id: str):
+    board.delete_column(column_id)
+    return redirect(url_for("index"))
+
+
 @app.route("/tasks/add", methods=["POST"])
 def add_task():
     title = request.form.get("title", "").strip()

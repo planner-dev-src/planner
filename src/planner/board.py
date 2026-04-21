@@ -54,6 +54,25 @@ class Board:
                 return True
         return False
 
+    def is_column_empty(self, column_id: str) -> bool:
+        return not any(task.column_id == column_id for task in self._tasks)
+
+    def delete_column(self, column_id: str) -> bool:
+        if not self.is_column_empty(column_id):
+            return False
+
+        original_count = len(self._columns)
+        self._columns = [column for column in self._columns if column.id != column_id]
+
+        if len(self._columns) == original_count:
+            return False
+
+        for index, column in enumerate(self.list_columns()):
+            column.position = index
+
+        self._save()
+        return True
+
     def add_task(self, title: str, column_id: str) -> Task | None:
         if self.get_column(column_id) is None:
             return None
