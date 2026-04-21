@@ -68,6 +68,7 @@
             cursor: pointer;
             font-size: 14px;
             text-decoration: none;
+            line-height: 1.2;
         }
 
         .btn-primary {
@@ -140,6 +141,7 @@
             margin: 0;
             font-size: 18px;
             word-break: break-word;
+            min-width: 0;
         }
 
         .column-actions {
@@ -147,10 +149,26 @@
             flex-direction: column;
             gap: 8px;
             flex-shrink: 0;
+            min-height: 76px; /* experiment: reserve space to reduce visual jump */
+            align-items: stretch;
         }
 
         .column-actions form {
             margin: 0;
+        }
+
+        .column-note {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            padding: 8px 10px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #6b7280;
+            background: #f8fafc;
+            text-align: center;
         }
 
         .task-list {
@@ -249,6 +267,7 @@
                     <div class="column-actions">
                         <a href="{{ url_for('edit_column', column_id=column.id) }}" class="btn btn-warn">Rename</a>
 
+                        <!-- experiment: separate column action label -->
                         {% if not column_tasks %}
                             <form action="{{ url_for('delete_column', column_id=column.id) }}" method="post">
                                 <button
@@ -256,9 +275,12 @@
                                     class="btn btn-danger"
                                     onclick="return confirm('Delete this empty column?')"
                                 >
-                                    Delete
+                                    Delete column
                                 </button>
                             </form>
+                        {% else %}
+                            <!-- experiment: keep second row occupied instead of hiding it -->
+                            <span class="column-note">Not empty</span>
                         {% endif %}
                     </div>
                 </div>
@@ -286,13 +308,14 @@
 
                                     <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warn">Edit</a>
 
+                                    <!-- experiment: separate task action label -->
                                     <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
                                         <button
                                             type="submit"
                                             class="btn btn-danger"
                                             onclick="return confirm('Delete this task?')"
                                         >
-                                            Delete
+                                            Delete task
                                         </button>
                                     </form>
                                 </div>
