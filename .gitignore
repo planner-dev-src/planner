@@ -5,4 +5,4 @@ __pycache__/
 .ipynb_checkpoints/
 .vscode/
 .env
-tasks.json
+board.json
