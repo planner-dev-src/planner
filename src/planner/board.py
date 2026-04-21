@@ -12,6 +12,7 @@ from .task import Task
 class Column:
     name: str
     position: int
+    is_done_column: bool = False
     id: str = field(default_factory=lambda: str(uuid4()))
 
 
@@ -20,10 +21,14 @@ class Board:
         self._storage_path = Path(storage_path)
         self._columns: list[Column] = []
         self._tasks: list[Task] = []
+
+        self._ensure_storage_exists()
         self._load()
 
         if not self._columns:
             self.add_column("Inbox")
+
+        self._ensure_done_column()
 
     def list_columns(self) -> list[Column]:
         return sorted(self._columns, key=lambda column: column.position)
@@ -37,6 +42,12 @@ class Board:
     def get_column(self, column_id: str) -> Column | None:
         for column in self._columns:
             if column.id == column_id:
+                return column
+        return None
+
+    def get_done_column(self) -> Column | None:
+        for column in self._columns:
+            if column.is_done_column:
                 return column
         return None
 
@@ -58,6 +69,13 @@ class Board:
         return not any(task.column_id == column_id for task in self._tasks)
 
     def delete_column(self, column_id: str) -> bool:
+        column = self.get_column(column_id)
+        if column is None:
+            return False
+
+        if column.is_done_column:
+            return False
+
         if not self.is_column_empty(column_id):
             return False
 
@@ -131,13 +149,13 @@ class Board:
         self._save()
 
     def move_task_to_done(self, task_id: str) -> None:
-        ordered_columns = self.list_columns()
         task = self.get_task(task_id)
+        done_column = self.get_done_column()
 
-        if task is None or not ordered_columns:
+        if task is None or done_column is None:
             return
 
-        task.column_id = ordered_columns[-1].id
+        task.column_id = done_column.id
         self._save()
 
     def _find_column_index(self, column_id: str, columns: list[Column]) -> int | None:
@@ -145,6 +163,40 @@ class Board:
             if column.id == column_id:
                 return index
         return None
+
+    def _ensure_done_column(self) -> None:
+        done_column = self.get_done_column()
+        if done_column is not None:
+            return
+
+        for column in self._columns:
+            normalized_name = column.name.strip().casefold()
+            if normalized_name in {"done", "сделано"}:
+                column.is_done_column = True
+                self._save()
+                return
+
+        self._columns.append(
+            Column(
+                name="Сделано",
+                position=len(self._columns),
+                is_done_column=True,
+            )
+        )
+        self._save()
+
+    def _ensure_storage_exists(self) -> None:
+        if self._storage_path.exists():
+            return
+
+        payload = {
+            "columns": [],
+            "tasks": [],
+        }
+        self._storage_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
 
     def _save(self) -> None:
         payload = {
@@ -174,7 +226,15 @@ class Board:
             columns_data = data.get("columns", [])
             tasks_data = data.get("tasks", [])
 
-            self._columns = [Column(**item) for item in columns_data]
+            self._columns = [
+                Column(
+                    name=item["name"],
+                    position=item["position"],
+                    is_done_column=item.get("is_done_column", False),
+                    id=item["id"],
+                )
+                for item in columns_data
+            ]
             self._tasks = [Task(**item) for item in tasks_data]
         except (json.JSONDecodeError, TypeError, KeyError):
             self._columns = []
