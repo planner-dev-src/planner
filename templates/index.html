@@ -229,7 +229,9 @@
 
                 <select name="column_id" required>
                     {% for column in columns %}
-                        <option value="{{ column.id }}">{{ column.name }}</option>
+                        {% if not column.is_done_column %}
+                            <option value="{{ column.id }}">{{ column.name }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
 
@@ -249,7 +251,7 @@
                     <div class="column-actions">
                         <a href="{{ url_for('edit_column', column_id=column.id) }}" class="btn btn-warn">Rename</a>
 
-                        {% if not column_tasks %}
+                        {% if not column.is_done_column and not column_tasks %}
                             <form action="{{ url_for('delete_column', column_id=column.id) }}" method="post">
                                 <button
                                     type="submit"
@@ -278,7 +280,7 @@
                                         <button type="submit" class="btn btn-secondary">→</button>
                                     </form>
 
-                                    {% if column.id != columns[-1].id %}
+                                    {% if not column.is_done_column %}
                                         <form action="{{ url_for('mark_task_done', task_id=task.id) }}" method="post">
                                             <button type="submit" class="btn btn-success">Done</button>
                                         </form>
