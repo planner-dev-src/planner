@@ -21,20 +21,23 @@ class Board:
         self._storage_path = Path(storage_path)
         self._columns: list[Column] = []
         self._tasks: list[Task] = []
-
-        self._ensure_storage_exists()
         self._load()
 
         if not self._columns:
             self.add_column("Inbox")
 
         self._ensure_done_column()
+        self._normalize_column_positions()
+        self._sync_task_done_flags()
 
     def list_columns(self) -> list[Column]:
-        return sorted(self._columns, key=lambda column: column.position)
+        return sorted(
+            self._columns,
+            key=lambda column: (column.is_done_column, column.position),
+        )
 
     def list_tasks(self) -> list[Task]:
-        return self._tasks
+        return list(self._tasks)
 
     def get_tasks_by_column(self, column_id: str) -> list[Task]:
         return [task for task in self._tasks if task.column_id == column_id]
@@ -51,16 +54,28 @@ class Board:
                 return column
         return None
 
-    def add_column(self, name: str) -> Column:
-        column = Column(name=name, position=len(self._columns))
+    def add_column(self, name: str) -> Column | None:
+        cleaned_name = name.strip()
+        if not cleaned_name:
+            return None
+
+        regular_columns = [column for column in self._columns if not column.is_done_column]
+        column = Column(name=cleaned_name, position=len(regular_columns))
         self._columns.append(column)
+        self._normalize_column_positions()
         self._save()
         return column
 
     def update_column(self, column_id: str, new_name: str) -> bool:
+        cleaned_name = new_name.strip()
+        if not cleaned_name:
+            return False
+
         for column in self._columns:
             if column.id == column_id:
-                column.name = new_name
+                if column.is_done_column:
+                    return False
+                column.name = cleaned_name
                 self._save()
                 return True
         return False
@@ -80,22 +95,25 @@ class Board:
             return False
 
         original_count = len(self._columns)
-        self._columns = [column for column in self._columns if column.id != column_id]
+        self._columns = [item for item in self._columns if item.id != column_id]
 
         if len(self._columns) == original_count:
             return False
 
-        for index, column in enumerate(self.list_columns()):
-            column.position = index
-
+        self._normalize_column_positions()
         self._save()
         return True
 
     def add_task(self, title: str, column_id: str) -> Task | None:
-        if self.get_column(column_id) is None:
+        cleaned_title = title.strip()
+        if not cleaned_title:
             return None
 
-        task = Task(title=title, column_id=column_id)
+        column = self.get_column(column_id)
+        if column is None or column.is_done_column:
+            return None
+
+        task = Task(title=cleaned_title, column_id=column_id, done=False)
         self._tasks.append(task)
         self._save()
         return task
@@ -107,56 +125,76 @@ class Board:
         return None
 
     def update_task(self, task_id: str, new_title: str, new_column_id: str) -> bool:
-        if self.get_column(new_column_id) is None:
+        cleaned_title = new_title.strip()
+        if not cleaned_title:
+            return False
+
+        column = self.get_column(new_column_id)
+        if column is None:
             return False
 
         for task in self._tasks:
             if task.id == task_id:
-                task.title = new_title
+                task.title = cleaned_title
                 task.column_id = new_column_id
+                task.done = column.is_done_column
                 self._save()
                 return True
         return False
 
-    def delete_task(self, task_id: str) -> None:
+    def delete_task(self, task_id: str) -> bool:
+        original_count = len(self._tasks)
         self._tasks = [task for task in self._tasks if task.id != task_id]
-        self._save()
 
-    def move_task_left(self, task_id: str) -> None:
+        if len(self._tasks) == original_count:
+            return False
+
+        self._save()
+        return True
+
+    def move_task_left(self, task_id: str) -> bool:
         ordered_columns = self.list_columns()
         task = self.get_task(task_id)
         if task is None:
-            return
+            return False
 
         current_index = self._find_column_index(task.column_id, ordered_columns)
         if current_index is None or current_index == 0:
-            return
+            return False
 
-        task.column_id = ordered_columns[current_index - 1].id
+        new_column = ordered_columns[current_index - 1]
+        task.column_id = new_column.id
+        task.done = new_column.is_done_column
         self._save()
+        return True
 
-    def move_task_right(self, task_id: str) -> None:
+    def move_task_right(self, task_id: str) -> bool:
         ordered_columns = self.list_columns()
         task = self.get_task(task_id)
         if task is None:
-            return
+            return False
 
         current_index = self._find_column_index(task.column_id, ordered_columns)
         if current_index is None or current_index >= len(ordered_columns) - 1:
-            return
+            return False
 
-        task.column_id = ordered_columns[current_index + 1].id
+        new_column = ordered_columns[current_index + 1]
+        task.column_id = new_column.id
+        task.done = new_column.is_done_column
         self._save()
+        return True
 
-    def move_task_to_done(self, task_id: str) -> None:
+    def move_task_to_done(self, task_id: str) -> bool:
         task = self.get_task(task_id)
         done_column = self.get_done_column()
 
         if task is None or done_column is None:
-            return
+            return False
 
         task.column_id = done_column.id
+        task.done = True
         self._save()
+        return True
 
     def _find_column_index(self, column_id: str, columns: list[Column]) -> int | None:
         for index, column in enumerate(columns):
@@ -179,24 +217,36 @@ class Board:
         self._columns.append(
             Column(
                 name="Сделано",
-                position=len(self._columns),
+                position=len([column for column in self._columns if not column.is_done_column]),
                 is_done_column=True,
             )
         )
         self._save()
 
-    def _ensure_storage_exists(self) -> None:
-        if self._storage_path.exists():
-            return
-
-        payload = {
-            "columns": [],
-            "tasks": [],
-        }
-        self._storage_path.write_text(
-            json.dumps(payload, indent=2, ensure_ascii=False),
-            encoding="utf-8",
+    def _normalize_column_positions(self) -> None:
+        regular_columns = sorted(
+            [column for column in self._columns if not column.is_done_column],
+            key=lambda column: column.position,
         )
+
+        for index, column in enumerate(regular_columns):
+            column.position = index
+
+        done_column = self.get_done_column()
+        if done_column is not None:
+            done_column.position = len(regular_columns)
+
+    def _sync_task_done_flags(self) -> None:
+        changed = False
+        for task in self._tasks:
+            column = self.get_column(task.column_id)
+            should_be_done = bool(column and column.is_done_column)
+            if task.done != should_be_done:
+                task.done = should_be_done
+                changed = True
+
+        if changed:
+            self._save()
 
     def _save(self) -> None:
         payload = {
