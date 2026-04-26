@@ -1,6 +1,7 @@
 import sqlite3
 import uuid
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +19,20 @@ class Task:
     id: str
     title: str
     column_id: str
+    description: Optional[str] = None
+    priority: str = "medium"
+    due_date: Optional[str] = None
+
+    def get_due_date_as_date(self):
+        if not self.due_date:
+            return None
+        try:
+            return date.fromisoformat(self.due_date)
+        except ValueError:
+            return None
+
+    def has_description(self):
+        return bool((self.description or "").strip())
 
 
 class Board:
@@ -25,6 +40,7 @@ class Board:
         base_dir = Path(__file__).resolve().parents[2]
         self.db_path = str(base_dir / "planner.db") if db_path is None else db_path
         self._init_db()
+        self._migrate_tasks_table()
         self._ensure_default_columns()
         self._reorder_columns()
 
@@ -53,6 +69,37 @@ class Board:
                     column_id TEXT NOT NULL,
                     FOREIGN KEY (column_id) REFERENCES columns (id)
                 )
+                """
+            )
+            conn.commit()
+
+    def _get_table_columns(self, table_name: str):
+        with self._connect() as conn:
+            rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+        return {row["name"] for row in rows}
+
+    def _migrate_tasks_table(self):
+        existing_columns = self._get_table_columns("tasks")
+        required_columns = {
+            "description": "TEXT",
+            "priority": "TEXT",
+            "due_date": "TEXT",
+        }
+
+        with self._connect() as conn:
+            for column_name, column_type in required_columns.items():
+                if column_name not in existing_columns:
+                    conn.execute(
+                        f"ALTER TABLE tasks ADD COLUMN {column_name} {column_type}"
+                    )
+            conn.commit()
+
+        with self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE tasks
+                SET priority = 'medium'
+                WHERE priority IS NULL OR TRIM(priority) = ''
                 """
             )
             conn.commit()
@@ -215,11 +262,21 @@ class Board:
 
         self._reorder_columns()
 
+    def _row_to_task(self, row):
+        return Task(
+            id=row["id"],
+            title=row["title"],
+            column_id=row["column_id"],
+            description=row["description"] if "description" in row.keys() else None,
+            priority=(row["priority"] if "priority" in row.keys() and row["priority"] else "medium"),
+            due_date=row["due_date"] if "due_date" in row.keys() else None,
+        )
+
     def get_tasks_by_column(self, column_id: str):
         with self._connect() as conn:
             rows = conn.execute(
                 """
-                SELECT id, title, column_id
+                SELECT id, title, column_id, description, priority, due_date
                 FROM tasks
                 WHERE column_id = ?
                 ORDER BY rowid ASC
@@ -227,20 +284,13 @@ class Board:
                 (column_id,),
             ).fetchall()
 
-        return [
-            Task(
-                id=row["id"],
-                title=row["title"],
-                column_id=row["column_id"],
-            )
-            for row in rows
-        ]
+        return [self._row_to_task(row) for row in rows]
 
     def get_task(self, task_id: str):
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT id, title, column_id
+                SELECT id, title, column_id, description, priority, due_date
                 FROM tasks
                 WHERE id = ?
                 """,
@@ -250,13 +300,9 @@ class Board:
         if row is None:
             return None
 
-        return Task(
-            id=row["id"],
-            title=row["title"],
-            column_id=row["column_id"],
-        )
+        return self._row_to_task(row)
 
-    def add_task(self, title: str, column_id: str):
+    def add_task(self, title: str, column_id: str, description=None, priority="medium", due_date=None):
         title = title.strip()
         if not title:
             return None
@@ -266,20 +312,31 @@ class Board:
             return None
 
         task_id = uuid.uuid4().hex
+        safe_description = (description or "").strip() or None
+        safe_priority = priority if priority in {"low", "medium", "high"} else "medium"
+        safe_due_date = due_date or None
 
         with self._connect() as conn:
             conn.execute(
                 """
-                INSERT INTO tasks (id, title, column_id)
-                VALUES (?, ?, ?)
+                INSERT INTO tasks (id, title, column_id, description, priority, due_date)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (task_id, title, column_id),
+                (task_id, title, column_id, safe_description, safe_priority, safe_due_date),
             )
             conn.commit()
 
         return self.get_task(task_id)
 
-    def update_task(self, task_id: str, title: str, column_id: str):
+    def update_task(
+        self,
+        task_id: str,
+        title: str,
+        column_id: str,
+        description=None,
+        priority="medium",
+        due_date=None,
+    ):
         title = title.strip()
         if not title:
             return
@@ -288,14 +345,18 @@ class Board:
         if column is None:
             return
 
+        safe_description = (description or "").strip() or None
+        safe_priority = priority if priority in {"low", "medium", "high"} else "medium"
+        safe_due_date = due_date or None
+
         with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE tasks
-                SET title = ?, column_id = ?
+                SET title = ?, column_id = ?, description = ?, priority = ?, due_date = ?
                 WHERE id = ?
                 """,
-                (title, column_id, task_id),
+                (title, column_id, safe_description, safe_priority, safe_due_date, task_id),
             )
             conn.commit()
 
@@ -308,17 +369,10 @@ class Board:
         with self._connect() as conn:
             rows = conn.execute(
                 """
-                SELECT id, title, column_id
+                SELECT id, title, column_id, description, priority, due_date
                 FROM tasks
                 ORDER BY rowid ASC
                 """
             ).fetchall()
 
-        return [
-            Task(
-                id=row["id"],
-                title=row["title"],
-                column_id=row["column_id"],
-            )
-            for row in rows
-        ]
+        return [self._row_to_task(row) for row in rows]

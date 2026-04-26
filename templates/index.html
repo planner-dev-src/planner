@@ -23,6 +23,12 @@
             --success-hover: #15803d;
             --secondary: #6b7280;
             --secondary-hover: #4b5563;
+            --low-bg: #eef2ff;
+            --low-text: #4338ca;
+            --medium-bg: #fff7ed;
+            --medium-text: #c2410c;
+            --high-bg: #fef2f2;
+            --high-text: #b91c1c;
             --info-bg: #eff6ff;
             --info-border: #bfdbfe;
             --info-text: #1d4ed8;
@@ -138,7 +144,8 @@
         }
 
         .input,
-        select.input {
+        select.input,
+        textarea.input {
             min-height: 42px;
             padding: 10px 12px;
             border: 1px solid var(--border);
@@ -150,8 +157,15 @@
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
+        textarea.input {
+            min-height: 88px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
         .input:focus,
-        select.input:focus {
+        select.input:focus,
+        textarea.input:focus {
             border-color: #93c5fd;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
@@ -255,8 +269,8 @@
         }
 
         .column {
-            width: 340px;
-            min-width: 340px;
+            width: 360px;
+            min-width: 360px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 18px;
@@ -329,12 +343,25 @@
 
         .task-create-form {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .task-create-form .input {
+        .task-create-row,
+        .task-create-meta-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .task-create-row .input {
             flex: 1 1 180px;
+        }
+
+        .task-create-meta-row .input,
+        .task-create-meta-row select.input {
+            flex: 1 1 140px;
         }
 
         .tasks {
@@ -377,12 +404,64 @@
                 0 8px 18px rgba(15, 23, 42, 0.06);
         }
 
+        .task-head {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .task-title {
             margin: 0;
             font-size: 15px;
             line-height: 1.45;
             word-break: break-word;
             padding-right: 4px;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .priority-badge,
+        .due-date-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .priority-low {
+            background: var(--low-bg);
+            color: var(--low-text);
+        }
+
+        .priority-medium {
+            background: var(--medium-bg);
+            color: var(--medium-text);
+        }
+
+        .priority-high {
+            background: var(--high-bg);
+            color: var(--high-text);
+        }
+
+        .due-date-badge {
+            background: #eef6ff;
+            color: #1d4ed8;
+        }
+
+        .task-description {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+            word-break: break-word;
         }
 
         .task-actions {
@@ -411,7 +490,7 @@
                 opacity: 1;
                 visibility: visible;
                 pointer-events: auto;
-                max-height: 120px;
+                max-height: 160px;
                 margin-top: 10px;
                 transform: translateY(0);
             }
@@ -420,7 +499,7 @@
         .inline-edit {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
         }
 
@@ -432,8 +511,26 @@
         }
 
         .inline-edit .input,
-        .inline-edit select.input {
+        .inline-edit select.input,
+        .inline-edit textarea.input {
             flex: 1 1 180px;
+        }
+
+        .edit-task-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .edit-task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .edit-task-meta .input,
+        .edit-task-meta select.input {
+            flex: 1 1 140px;
         }
 
         form {
@@ -454,7 +551,7 @@
 
         @media (max-width: 900px) {
             .page { padding: 16px; }
-            .column { width: 300px; min-width: 300px; }
+            .column { width: 320px; min-width: 320px; }
             .topbar-title h1 { font-size: 28px; }
         }
 
@@ -463,15 +560,22 @@
 
             .toolbar-row form,
             .inline-edit-row,
-            .task-create-form {
+            .task-create-row,
+            .task-create-meta-row,
+            .edit-task-meta {
                 flex-direction: column;
                 align-items: stretch;
             }
 
             .input-grow,
-            .task-create-form .input,
+            .task-create-row .input,
+            .task-create-meta-row .input,
+            .task-create-meta-row select.input,
             .inline-edit .input,
-            .inline-edit select.input {
+            .inline-edit select.input,
+            .inline-edit textarea.input,
+            .edit-task-meta .input,
+            .edit-task-meta select.input {
                 flex: 1 1 auto;
                 width: 100%;
             }
@@ -570,9 +674,22 @@
                         <form class="task-create-form" action="{{ url_for('add_task') }}" method="post" autocomplete="off">
                             {{ add_task_form.hidden_tag() }}
                             {{ add_task_form.column_id() }}
-                            <label class="sr-only" for="{{ add_task_form.title.id }}">Новая задача</label>
-                            {{ add_task_form.title(class="input", placeholder="Добавить задачу", autocomplete="off") }}
-                            {{ add_task_form.submit(class="btn btn-primary") }}
+
+                            <div class="task-create-row">
+                                <label class="sr-only" for="{{ add_task_form.title.id }}">Новая задача</label>
+                                {{ add_task_form.title(class="input", placeholder="Добавить задачу", autocomplete="off") }}
+                                {{ add_task_form.submit(class="btn btn-primary") }}
+                            </div>
+
+                            <div class="task-create-row">
+                                <label class="sr-only" for="{{ add_task_form.description.id }}">Описание</label>
+                                {{ add_task_form.description(class="input", placeholder="Короткое описание (необязательно)") }}
+                            </div>
+
+                            <div class="task-create-meta-row">
+                                {{ add_task_form.priority(class="input") }}
+                                {{ add_task_form.due_date(class="input") }}
+                            </div>
                         </form>
 
                         <div class="tasks">
@@ -583,15 +700,45 @@
                                         {% if edit_task_id == task.id %}
                                             <form class="inline-edit" action="{{ url_for('edit_task', task_id=task.id) }}" method="post">
                                                 {{ edit_task_form.hidden_tag() }}
-                                                <div class="inline-edit-row">
+
+                                                <div class="edit-task-grid">
                                                     {{ edit_task_form.title(class="input", autofocus=true) }}
+                                                    {{ edit_task_form.description(class="input", placeholder="Описание") }}
+                                                </div>
+
+                                                <div class="edit-task-meta">
+                                                    {{ edit_task_form.priority(class="input") }}
+                                                    {{ edit_task_form.due_date(class="input") }}
                                                     {{ edit_task_form.column_id(class="input") }}
+                                                </div>
+
+                                                <div class="inline-edit-row">
                                                     {{ edit_task_form.submit(class="btn btn-small btn-primary") }}
                                                     <a href="{{ url_for('index') }}" class="btn btn-small">Отмена</a>
                                                 </div>
                                             </form>
                                         {% else %}
-                                            <p class="task-title">{{ task.title }}</p>
+                                            <div class="task-head">
+                                                <p class="task-title">{{ task.title }}</p>
+
+                                                <div class="task-meta">
+                                                    {% if task.priority == "low" %}
+                                                        <span class="priority-badge priority-low">Низкий</span>
+                                                    {% elif task.priority == "high" %}
+                                                        <span class="priority-badge priority-high">Высокий</span>
+                                                    {% else %}
+                                                        <span class="priority-badge priority-medium">Средний</span>
+                                                    {% endif %}
+
+                                                    {% if task.due_date %}
+                                                        <span class="due-date-badge">Срок: {{ task.due_date }}</span>
+                                                    {% endif %}
+                                                </div>
+
+                                                {% if task.has_description() %}
+                                                    <p class="task-description">{{ task.description }}</p>
+                                                {% endif %}
+                                            </div>
 
                                             <div class="task-actions" aria-label="Действия с задачей">
                                                 <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get">

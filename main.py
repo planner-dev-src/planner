@@ -94,6 +94,9 @@ def build_template_context(edit_column_id=None, edit_task_id=None):
             form = make_edit_task_form(task.id, columns)
             if edit_task_id == task.id:
                 form.title.data = task.title
+                form.description.data = task.description or ""
+                form.priority.data = task.priority or "medium"
+                form.due_date.data = task.get_due_date_as_date()
                 form.column_id.data = task.column_id
             edit_task_forms[task.id] = form
 
@@ -235,7 +238,13 @@ def add_task():
         flash_form_errors(form)
         return redirect_index()
 
-    task = board.add_task(form.title.data.strip(), form.column_id.data)
+    task = board.add_task(
+        title=form.title.data.strip(),
+        column_id=form.column_id.data,
+        description=(form.description.data or "").strip(),
+        priority=form.priority.data,
+        due_date=form.get_due_date_as_str(),
+    )
     if task is None:
         flash("Не удалось добавить задачу.", "error")
     else:
@@ -266,7 +275,14 @@ def edit_task(task_id):
             **build_template_context(edit_task_id=task_id),
         )
 
-    board.update_task(task_id, form.title.data.strip(), form.column_id.data)
+    board.update_task(
+        task_id=task_id,
+        title=form.title.data.strip(),
+        column_id=form.column_id.data,
+        description=(form.description.data or "").strip(),
+        priority=form.priority.data,
+        due_date=form.get_due_date_as_str(),
+    )
     flash("Задача обновлена.", "success")
     return redirect_index()
 
@@ -313,7 +329,14 @@ def move_task_left(task_id):
         return redirect_index()
 
     new_column_id = column_ids[current_index - 1]
-    board.update_task(task.id, task.title, new_column_id)
+    board.update_task(
+        task.id,
+        task.title,
+        new_column_id,
+        description=task.description,
+        priority=task.priority,
+        due_date=task.due_date,
+    )
     flash("Задача перемещена влево.", "success")
     return redirect_index()
 
@@ -343,7 +366,14 @@ def move_task_right(task_id):
         return redirect_index()
 
     new_column_id = column_ids[current_index + 1]
-    board.update_task(task.id, task.title, new_column_id)
+    board.update_task(
+        task.id,
+        task.title,
+        new_column_id,
+        description=task.description,
+        priority=task.priority,
+        due_date=task.due_date,
+    )
     flash("Задача перемещена вправо.", "success")
     return redirect_index()
 
@@ -369,7 +399,14 @@ def mark_task_done(task_id):
         flash("Задача уже находится в колонке Готово.", "info")
         return redirect_index()
 
-    board.update_task(task.id, task.title, done_column.id)
+    board.update_task(
+        task.id,
+        task.title,
+        done_column.id,
+        description=task.description,
+        priority=task.priority,
+        due_date=task.due_date,
+    )
     flash("Задача отмечена как выполненная.", "success")
     return redirect_index()
 
