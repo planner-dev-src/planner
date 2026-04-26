@@ -171,7 +171,13 @@
             line-height: 1;
             cursor: pointer;
             text-decoration: none;
-            transition: transform 0.04s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            transition:
+                transform 0.04s ease,
+                background-color 0.15s ease,
+                border-color 0.15s ease,
+                color 0.15s ease,
+                box-shadow 0.15s ease,
+                opacity 0.15s ease;
         }
 
         .btn:hover { background: #f8fafc; }
@@ -348,17 +354,67 @@
         }
 
         .task-card {
+            position: relative;
             border: 1px solid var(--border-soft);
             border-radius: 14px;
             padding: 14px;
             background: #fff;
+            transition:
+                border-color 0.15s ease,
+                box-shadow 0.15s ease,
+                transform 0.08s ease;
+        }
+
+        .task-card:hover {
+            border-color: #cfd9e8;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .task-card:focus-within {
+            border-color: #93c5fd;
+            box-shadow:
+                0 0 0 4px rgba(37, 99, 235, 0.10),
+                0 8px 18px rgba(15, 23, 42, 0.06);
         }
 
         .task-title {
-            margin: 0 0 10px;
+            margin: 0;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.45;
             word-break: break-word;
+            padding-right: 4px;
+        }
+
+        .task-actions {
+            margin-top: 10px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .task-actions {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                max-height: 0;
+                overflow: hidden;
+                margin-top: 0;
+                transform: translateY(-4px);
+                transition:
+                    opacity 0.15s ease,
+                    transform 0.15s ease,
+                    margin-top 0.15s ease,
+                    max-height 0.15s ease,
+                    visibility 0.15s ease;
+            }
+
+            .task-card:hover .task-actions,
+            .task-card:focus-within .task-actions {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+                max-height: 120px;
+                margin-top: 10px;
+                transform: translateY(0);
+            }
         }
 
         .inline-edit {
@@ -537,7 +593,7 @@
                                         {% else %}
                                             <p class="task-title">{{ task.title }}</p>
 
-                                            <div class="task-actions">
+                                            <div class="task-actions" aria-label="Действия с задачей">
                                                 <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get">
                                                     <button type="submit" class="btn btn-small btn-secondary">Изменить</button>
                                                 </form>
