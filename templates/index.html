@@ -1,311 +1,582 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Planner Board</title>
     <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --border: #d7deea;
+            --border-soft: #e8edf5;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #16a34a;
+            --success-hover: #15803d;
+            --secondary: #6b7280;
+            --secondary-hover: #4b5563;
+            --info-bg: #eff6ff;
+            --info-border: #bfdbfe;
+            --info-text: #1d4ed8;
+            --error-bg: #fef2f2;
+            --error-border: #fecaca;
+            --error-text: #991b1b;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+            --success-text: #166534;
+            --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+            --radius: 14px;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 32px;
-            color: #222;
-            background: #f5f7fb;
-        }
-
-        h1 {
-            margin-bottom: 8px;
-        }
-
-        p {
-            color: #555;
-        }
-
-        .top-panel {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin: 24px 0 32px;
-        }
-
-        .panel {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-
-        .panel h2 {
-            margin-top: 0;
-            margin-bottom: 12px;
-            font-size: 18px;
-        }
-
-        form {
             margin: 0;
+            font-family: Arial, sans-serif;
+            color: var(--text);
+            background: linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
         }
 
-        .stack-form {
+        .page {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .topbar-title h1 {
+            margin: 0 0 6px;
+            font-size: 32px;
+            line-height: 1.1;
+        }
+
+        .topbar-title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .workspace-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 10px 14px;
+            box-shadow: var(--shadow);
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .workspace-badge strong {
+            color: var(--text);
+        }
+
+        .flash-stack {
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 18px;
         }
 
-        input[type="text"],
-        select {
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+        .flash {
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            box-shadow: var(--shadow);
             font-size: 14px;
-            background: white;
+        }
+
+        .flash-success {
+            background: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-text);
+        }
+
+        .flash-error {
+            background: var(--error-bg);
+            border-color: var(--error-border);
+            color: var(--error-text);
+        }
+
+        .flash-info {
+            background: var(--info-bg);
+            border-color: var(--info-border);
+            color: var(--info-text);
+        }
+
+        .toolbar-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input,
+        select.input {
+            min-height: 42px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .input:focus,
+        select.input:focus {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .input-grow {
+            flex: 1 1 320px;
         }
 
         .btn {
-            display: inline-block;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: white;
-            cursor: pointer;
+            min-height: 42px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
             font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
             text-decoration: none;
+            transition: transform 0.04s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
 
+        .btn:hover { background: #f8fafc; }
+        .btn:active { transform: translateY(1px); }
+
         .btn-primary {
-            background-color: #2563eb;
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
         }
 
         .btn-primary:hover {
-            background-color: #1d4ed8;
-        }
-
-        .btn-warn {
-            background-color: #d97706;
-        }
-
-        .btn-warn:hover {
-            background-color: #b45309;
-        }
-
-        .btn-danger {
-            background-color: #dc2626;
-        }
-
-        .btn-danger:hover {
-            background-color: #b91c1c;
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
         }
 
         .btn-secondary {
-            background-color: #6b7280;
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: #fff;
         }
 
         .btn-secondary:hover {
-            background-color: #4b5563;
+            background: var(--secondary-hover);
+            border-color: var(--secondary-hover);
+        }
+
+        .btn-danger {
+            background: #fff;
+            border-color: #fecaca;
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: var(--danger-hover);
         }
 
         .btn-success {
-            background-color: #16a34a;
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
         }
 
         .btn-success:hover {
-            background-color: #15803d;
+            background: var(--success-hover);
+            border-color: var(--success-hover);
+        }
+
+        .btn-small {
+            min-height: 34px;
+            padding: 8px 10px;
+            font-size: 13px;
+            border-radius: 9px;
+        }
+
+        .btn-icon {
+            width: 34px;
+            min-width: 34px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
         }
 
         .board {
             display: flex;
-            gap: 16px;
+            gap: 18px;
             align-items: flex-start;
             overflow-x: auto;
             padding-bottom: 8px;
         }
 
         .column {
-            min-width: 280px;
-            max-width: 280px;
-            background: #ffffff;
-            border: 1px solid #dbe1ea;
-            border-radius: 12px;
-            padding: 14px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+            width: 340px;
+            min-width: 340px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .done-column {
+            border-color: #bbf7d0;
+            background: linear-gradient(180deg, #ffffff 0%, #f6fff8 100%);
         }
 
         .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 14px;
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid #eef2f7;
+            background: var(--panel-soft);
         }
 
-        .column-header h3 {
+        .column-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .column-title {
             margin: 0;
-            font-size: 18px;
+            font-size: 20px;
+            line-height: 1.2;
             word-break: break-word;
         }
 
-        .column-actions {
+        .column-badge {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: #e5eefc;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .done-column .column-badge {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .column-actions,
+        .task-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .column-body {
+            padding: 14px;
             display: flex;
             flex-direction: column;
+            gap: 14px;
+        }
+
+        .task-create-form {
+            display: flex;
             gap: 8px;
-            flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
-        .column-actions form {
-            margin: 0;
+        .task-create-form .input {
+            flex: 1 1 180px;
         }
 
-        .task-list {
+        .tasks {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
+        .empty-state {
+            margin: 0;
+            padding: 18px 14px;
+            border: 1px dashed var(--border);
+            border-radius: 14px;
+            background: #fbfdff;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
         .task-card {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 12px;
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 14px;
+            background: #fff;
         }
 
         .task-title {
+            margin: 0 0 10px;
             font-size: 15px;
-            margin-bottom: 12px;
+            line-height: 1.4;
             word-break: break-word;
         }
 
-        .task-actions {
+        .inline-edit {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .inline-edit-row {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            align-items: center;
         }
 
-        .task-actions form {
-            display: inline-block;
+        .inline-edit .input,
+        .inline-edit select.input {
+            flex: 1 1 180px;
         }
 
-        .empty-column {
-            color: #777;
-            font-style: italic;
+        form {
             margin: 0;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         @media (max-width: 900px) {
-            .top-panel {
-                grid-template-columns: 1fr;
+            .page { padding: 16px; }
+            .column { width: 300px; min-width: 300px; }
+            .topbar-title h1 { font-size: 28px; }
+        }
+
+        @media (max-width: 560px) {
+            .page { padding: 12px; }
+
+            .toolbar-row form,
+            .inline-edit-row,
+            .task-create-form {
+                flex-direction: column;
+                align-items: stretch;
             }
 
-            body {
-                margin: 16px;
+            .input-grow,
+            .task-create-form .input,
+            .inline-edit .input,
+            .inline-edit select.input {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+
+            .column {
+                width: 88vw;
+                min-width: 88vw;
+            }
+
+            .btn:not(.btn-icon),
+            .btn-small:not(.btn-icon) {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Planner Board</h1>
-    <p>Tasks are grouped by columns that you create yourself.</p>
-
-    <div class="top-panel">
-        <div class="panel">
-            <h2>Add column</h2>
-            <form action="{{ url_for('add_column') }}" method="post" class="stack-form">
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Column name"
-                    required
-                >
-                <button type="submit" class="btn btn-primary">Add column</button>
-            </form>
-        </div>
-
-        <div class="panel">
-            <h2>Add task</h2>
-            <form action="{{ url_for('add_task') }}" method="post" class="stack-form">
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Task title"
-                    required
-                >
-
-                <select name="column_id" required>
-                    {% for column in columns %}
-                        {% if not column.is_done_column %}
-                            <option value="{{ column.id }}">{{ column.name }}</option>
-                        {% endif %}
+    <main class="page">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <section class="flash-stack" aria-label="Сообщения">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
                     {% endfor %}
-                </select>
+                </section>
+            {% endif %}
+        {% endwith %}
 
-                <button type="submit" class="btn btn-primary">Add task</button>
-            </form>
-        </div>
-    </div>
+        <header class="topbar">
+            <div class="topbar-title">
+                <h1>Planner Board</h1>
+                <p>Управляй задачами по колонкам и быстро переноси их между этапами.</p>
+            </div>
 
-    <div class="board">
-        {% for column in columns %}
-            <section class="column">
-                {% set column_tasks = tasks_by_column[column.id] %}
+            {% if current_workspace %}
+                <div class="workspace-badge">
+                    Workspace:
+                    <strong>{{ current_workspace.name }}</strong>
+                </div>
+            {% endif %}
+        </header>
 
-                <div class="column-header">
-                    <h3>{{ column.name }}</h3>
+        <section class="toolbar-card">
+            <div class="toolbar-row">
+                <form action="{{ url_for('add_column') }}" method="post" autocomplete="off">
+                    {{ add_column_form.hidden_tag() }}
+                    <label class="sr-only" for="{{ add_column_form.name.id }}">Новая колонка</label>
+                    {{ add_column_form.name(class="input input-grow", placeholder="Добавить колонку", autocomplete="off") }}
+                    {{ add_column_form.submit(class="btn btn-primary") }}
+                </form>
+            </div>
+        </section>
 
-                    <div class="column-actions">
-                        <a href="{{ url_for('edit_column', column_id=column.id) }}" class="btn btn-warn">Rename</a>
+        <section class="board" aria-label="Task board">
+            {% for column in columns %}
+                {% set column_tasks = tasks_by_column.get(column.id, []) %}
+                {% set add_task_form = add_task_forms[column.id] %}
+                {% set edit_column_form = edit_column_forms[column.id] %}
+                {% set is_first_column = loop.first %}
 
-                        {% if not column.is_done_column and not column_tasks %}
-                            <form action="{{ url_for('delete_column', column_id=column.id) }}" method="post">
-                                <button
-                                    type="submit"
-                                    class="btn btn-danger"
-                                    onclick="return confirm('Delete this empty column?')"
-                                >
-                                    Delete
-                                </button>
-                            </form>
+                <article class="column {% if column.is_done_column %}done-column{% endif %}">
+                    <div class="column-header">
+                        <div class="column-title-row">
+                            {% if edit_column_id == column.id %}
+                                <form class="inline-edit" action="{{ url_for('edit_column', column_id=column.id) }}" method="post">
+                                    {{ edit_column_form.hidden_tag() }}
+                                    <div class="inline-edit-row">
+                                        {{ edit_column_form.name(class="input", autofocus=true) }}
+                                        {{ edit_column_form.submit(class="btn btn-small btn-primary") }}
+                                        <a href="{{ url_for('index') }}" class="btn btn-small">Отмена</a>
+                                    </div>
+                                </form>
+                            {% else %}
+                                <h2 class="column-title">{{ column.name }}</h2>
+                                <span class="column-badge">{{ column_tasks|length }}</span>
+                            {% endif %}
+                        </div>
+
+                        {% if edit_column_id != column.id %}
+                            <div class="column-actions">
+                                <form action="{{ url_for('edit_column', column_id=column.id) }}" method="get">
+                                    <button type="submit" class="btn btn-small btn-secondary">Изменить</button>
+                                </form>
+
+                                {% if not column.is_done_column and not column_tasks %}
+                                    <form action="{{ url_for('delete_column', column_id=column.id) }}" method="post">
+                                        {{ delete_column_forms[column.id].hidden_tag() }}
+                                        <button type="submit" class="btn btn-small btn-danger">Удалить</button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
-                </div>
 
-                {% if column_tasks %}
-                    <div class="task-list">
-                        {% for task in column_tasks %}
-                            <article class="task-card">
-                                <div class="task-title">{{ task.title }}</div>
+                    <div class="column-body">
+                        <form class="task-create-form" action="{{ url_for('add_task') }}" method="post" autocomplete="off">
+                            {{ add_task_form.hidden_tag() }}
+                            {{ add_task_form.column_id() }}
+                            <label class="sr-only" for="{{ add_task_form.title.id }}">Новая задача</label>
+                            {{ add_task_form.title(class="input", placeholder="Добавить задачу", autocomplete="off") }}
+                            {{ add_task_form.submit(class="btn btn-primary") }}
+                        </form>
 
-                                <div class="task-actions">
-                                    <form action="{{ url_for('move_task_left', task_id=task.id) }}" method="post">
-                                        <button type="submit" class="btn btn-secondary">←</button>
-                                    </form>
+                        <div class="tasks">
+                            {% if column_tasks %}
+                                {% for task in column_tasks %}
+                                    {% set edit_task_form = edit_task_forms[task.id] %}
+                                    <section class="task-card">
+                                        {% if edit_task_id == task.id %}
+                                            <form class="inline-edit" action="{{ url_for('edit_task', task_id=task.id) }}" method="post">
+                                                {{ edit_task_form.hidden_tag() }}
+                                                <div class="inline-edit-row">
+                                                    {{ edit_task_form.title(class="input", autofocus=true) }}
+                                                    {{ edit_task_form.column_id(class="input") }}
+                                                    {{ edit_task_form.submit(class="btn btn-small btn-primary") }}
+                                                    <a href="{{ url_for('index') }}" class="btn btn-small">Отмена</a>
+                                                </div>
+                                            </form>
+                                        {% else %}
+                                            <p class="task-title">{{ task.title }}</p>
 
-                                    <form action="{{ url_for('move_task_right', task_id=task.id) }}" method="post">
-                                        <button type="submit" class="btn btn-secondary">→</button>
-                                    </form>
+                                            <div class="task-actions">
+                                                <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get">
+                                                    <button type="submit" class="btn btn-small btn-secondary">Изменить</button>
+                                                </form>
 
-                                    {% if not column.is_done_column %}
-                                        <form action="{{ url_for('mark_task_done', task_id=task.id) }}" method="post">
-                                            <button type="submit" class="btn btn-success">Done</button>
-                                        </form>
-                                    {% endif %}
+                                                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                                                    {{ delete_task_forms[task.id].hidden_tag() }}
+                                                    <button type="submit" class="btn btn-small btn-danger">Удалить</button>
+                                                </form>
 
-                                    <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warn">Edit</a>
+                                                {% if not is_first_column %}
+                                                    <form action="{{ url_for('move_task_left', task_id=task.id) }}" method="post">
+                                                        {{ move_left_forms[task.id].hidden_tag() }}
+                                                        <button type="submit" class="btn btn-small btn-icon" title="Переместить влево" aria-label="Переместить влево">←</button>
+                                                    </form>
+                                                {% endif %}
 
-                                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
-                                        <button
-                                            type="submit"
-                                            class="btn btn-danger"
-                                            onclick="return confirm('Delete this task?')"
-                                        >
-                                            Delete
-                                        </button>
-                                    </form>
-                                </div>
-                            </article>
-                        {% endfor %}
+                                                {% if not column.is_done_column %}
+                                                    <form action="{{ url_for('move_task_right', task_id=task.id) }}" method="post">
+                                                        {{ move_right_forms[task.id].hidden_tag() }}
+                                                        <button type="submit" class="btn btn-small btn-icon" title="Переместить вправо" aria-label="Переместить вправо">→</button>
+                                                    </form>
+
+                                                    <form action="{{ url_for('mark_task_done', task_id=task.id) }}" method="post">
+                                                        {{ done_forms[task.id].hidden_tag() }}
+                                                        <button type="submit" class="btn btn-small btn-success">Готово</button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </section>
+                                {% endfor %}
+                            {% else %}
+                                <p class="empty-state">Задач пока нет.</p>
+                            {% endif %}
+                        </div>
                     </div>
-                {% else %}
-                    <p class="empty-column">No tasks in this column yet.</p>
-                {% endif %}
-            </section>
-        {% endfor %}
-    </div>
+                </article>
+            {% endfor %}
+        </section>
+    </main>
 </body>
 </html>
