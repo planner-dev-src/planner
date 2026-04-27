@@ -7,3 +7,4 @@ __pycache__/
 .env
 board.json
 tasks.json
+planner.db

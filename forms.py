@@ -1,9 +1,6 @@
-from datetime import date
-
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, SelectField, StringField, SubmitField, TextAreaField
-from wtforms.fields import DateField
-from wtforms.validators import DataRequired, InputRequired, Length, Optional
+from wtforms import DateField, HiddenField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, Optional
 
 
 PRIORITY_CHOICES = [
@@ -13,114 +10,128 @@ PRIORITY_CHOICES = [
 ]
 
 
+class AddWorkspaceForm(FlaskForm):
+    name = StringField(
+        "Название направления",
+        validators=[
+            DataRequired(message="Введите название направления."),
+            Length(max=120, message="Название направления должно быть не длиннее 120 символов."),
+        ],
+    )
+    submit = SubmitField("Создать направление")
+
+
+class EditWorkspaceForm(FlaskForm):
+    name = StringField(
+        "Новое название направления",
+        validators=[
+            DataRequired(message="Введите новое название направления."),
+            Length(max=120, message="Название направления должно быть не длиннее 120 символов."),
+        ],
+    )
+    submit = SubmitField("Сохранить")
+
+
 class AddColumnForm(FlaskForm):
+    workspace_id = HiddenField(validators=[DataRequired(message="Не найдено направление для новой колонки.")])
     name = StringField(
         "Название колонки",
         validators=[
             DataRequired(message="Введите название колонки."),
-            Length(max=100, message="Название колонки должно быть не длиннее 100 символов."),
+            Length(max=120, message="Название колонки должно быть не длиннее 120 символов."),
         ],
     )
     submit = SubmitField("Добавить колонку")
 
 
 class EditColumnForm(FlaskForm):
+    workspace_id = HiddenField(validators=[DataRequired(message="Не найдено направление колонки.")])
     name = StringField(
-        "Название колонки",
+        "Новое название колонки",
         validators=[
-            DataRequired(message="Введите название колонки."),
-            Length(max=100, message="Название колонки должно быть не длиннее 100 символов."),
+            DataRequired(message="Введите новое название колонки."),
+            Length(max=120, message="Название колонки должно быть не длиннее 120 символов."),
         ],
     )
     submit = SubmitField("Сохранить")
 
 
 class AddTaskForm(FlaskForm):
+    workspace_id = HiddenField(validators=[DataRequired(message="Не найдено направление задачи.")])
+    column_id = HiddenField(validators=[DataRequired(message="Не найдена колонка для новой задачи.")])
+
     title = StringField(
-        "Задача",
+        "Название задачи",
         validators=[
             DataRequired(message="Введите название задачи."),
-            Length(max=255, message="Название задачи должно быть не длиннее 255 символов."),
+            Length(max=200, message="Название задачи должно быть не длиннее 200 символов."),
         ],
     )
+
     description = TextAreaField(
         "Описание",
         validators=[
             Optional(),
-            Length(max=2000, message="Описание должно быть не длиннее 2000 символов."),
+            Length(max=5000, message="Описание задачи должно быть не длиннее 5000 символов."),
         ],
     )
+
     priority = SelectField(
         "Приоритет",
         choices=PRIORITY_CHOICES,
+        validators=[DataRequired(message="Выберите приоритет задачи.")],
         default="medium",
-        validators=[DataRequired(message="Выберите приоритет.")],
     )
+
     due_date = DateField(
         "Срок",
         format="%Y-%m-%d",
         validators=[Optional()],
-        default=None,
     )
-    column_id = HiddenField(
-        "Колонка",
-        validators=[
-            InputRequired(message="Не удалось определить колонку для новой задачи."),
-        ],
-    )
-    submit = SubmitField("Добавить")
 
-    def get_due_date_as_str(self):
-        if self.due_date.data is None:
-            return None
-        if isinstance(self.due_date.data, date):
-            return self.due_date.data.isoformat()
-        return str(self.due_date.data)
+    submit = SubmitField("Добавить задачу")
 
 
 class EditTaskForm(FlaskForm):
+    workspace_id = HiddenField(validators=[DataRequired(message="Не найдено направление задачи.")])
+
     title = StringField(
-        "Задача",
+        "Название задачи",
         validators=[
             DataRequired(message="Введите название задачи."),
-            Length(max=255, message="Название задачи должно быть не длиннее 255 символов."),
+            Length(max=200, message="Название задачи должно быть не длиннее 200 символов."),
         ],
     )
+
     description = TextAreaField(
         "Описание",
         validators=[
             Optional(),
-            Length(max=2000, message="Описание должно быть не длиннее 2000 символов."),
+            Length(max=5000, message="Описание задачи должно быть не длиннее 5000 символов."),
         ],
     )
+
     priority = SelectField(
         "Приоритет",
         choices=PRIORITY_CHOICES,
+        validators=[DataRequired(message="Выберите приоритет задачи.")],
         default="medium",
-        validators=[DataRequired(message="Выберите приоритет.")],
     )
+
     due_date = DateField(
         "Срок",
         format="%Y-%m-%d",
         validators=[Optional()],
-        default=None,
     )
+
     column_id = SelectField(
         "Колонка",
-        validators=[
-            DataRequired(message="Выберите колонку."),
-        ],
         choices=[],
+        validators=[DataRequired(message="Выберите колонку.")],
     )
-    submit = SubmitField("Сохранить")
 
-    def get_due_date_as_str(self):
-        if self.due_date.data is None:
-            return None
-        if isinstance(self.due_date.data, date):
-            return self.due_date.data.isoformat()
-        return str(self.due_date.data)
+    submit = SubmitField("Сохранить")
 
 
 class SimplePostForm(FlaskForm):
-    submit = SubmitField("OK")
+    workspace_id = HiddenField(validators=[Optional()])
