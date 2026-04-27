@@ -6,30 +6,38 @@
   <title>Planner</title>
   <style>
     :root {
-      --bg: #f3f5f9;
-      --surface: #ffffff;
-      --surface-soft: #f8fafc;
-      --surface-active: #eff6ff;
-      --border: #d9e0ea;
-      --border-strong: #c5cfdb;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --danger: #dc2626;
-      --danger-hover: #b91c1c;
-      --success: #16a34a;
-      --success-hover: #15803d;
-      --warning: #d97706;
-      --warning-hover: #b45309;
-      --system-bg: #eef2ff;
-      --system-text: #4338ca;
-      --disabled-bg: #e5e7eb;
-      --disabled-text: #6b7280;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      --task-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
-      --radius: 16px;
-      --radius-sm: 10px;
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-soft: #f8f8fb;
+  --surface-active: #f3f0f8;
+  --border: #d8dbe3;
+  --border-strong: #c4c8d4;
+  --text: #23262d;
+  --muted: #686f7b;
+
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+
+  --danger: #c53030;
+  --danger-hover: #9b2c2c;
+
+  --success: #2f855a;
+  --success-hover: #276749;
+
+  --warning: #b7791f;
+  --warning-hover: #975a16;
+
+  --system-bg: #f5f3f8;
+  --system-text: #5b4b73;
+
+  --disabled-bg: #e5e7eb;
+  --disabled-text: #6b7280;
+
+  --shadow: 0 10px 30px rgba(35, 38, 45, 0.08);
+  --task-shadow: 0 4px 14px rgba(35, 38, 45, 0.08);
+
+  --radius: 16px;
+  --radius-sm: 10px;
     }
 
     * {
@@ -149,7 +157,7 @@
 
     .workspace-card.active {
       background: var(--surface-active);
-      border-color: #93c5fd;
+      border-color: #b8abc9;
     }
 
     .workspace-card-top {
@@ -167,10 +175,16 @@
       font-weight: 700;
       font-size: 16px;
       word-break: break-word;
+      transition: color 0.15s ease;
     }
 
     .workspace-name:hover {
       color: var(--primary);
+    }
+
+    .workspace-card.active .workspace-name {
+      color: #5b4b73;
+      font-weight: 700;
     }
 
     .workspace-badge {
@@ -186,8 +200,8 @@
       margin-top: 8px;
       padding: 10px 12px;
       border-radius: 10px;
-      background: #eff6ff;
-      color: #1d4ed8;
+      background: var(--system-bg);
+      color: var(--system-text);
       font-size: 13px;
       line-height: 1.4;
     }
@@ -675,12 +689,6 @@
                     {% endif %}
                   </div>
 
-                  {% if not delete_state.can_delete %}
-                    <div class="workspace-block-hint">
-                      {{ delete_state.reason }}
-                    </div>
-                  {% endif %}
-
                   {% if active_workspace and workspace.id == active_workspace.id %}
                     <div class="workspace-note">
                       Направление можно удалить, когда в нём не осталось задач и пользовательских колонок.
@@ -918,5 +926,49 @@
       {% endif %}
     </main>
   </div>
+<script>
+  (function () {
+    const STORAGE_KEY = "planner-scroll-y";
+
+    function saveScrollPosition() {
+      try {
+        sessionStorage.setItem(
+          STORAGE_KEY,
+          String(window.scrollY || window.pageYOffset || 0)
+        );
+      } catch (e) {}
+    }
+
+    function restoreScrollPosition() {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_KEY);
+        if (raw === null) return;
+
+        const y = parseInt(raw, 10);
+        if (!Number.isNaN(y)) {
+          window.scrollTo(0, y);
+        }
+
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    window.addEventListener("load", function () {
+      restoreScrollPosition();
+    });
+
+    document.addEventListener(
+      "submit",
+      function () {
+        saveScrollPosition();
+      },
+      true
+    );
+
+    window.addEventListener("beforeunload", function () {
+      saveScrollPosition();
+    });
+  })();
+</script>
 </body>
 </html>
