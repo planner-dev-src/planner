@@ -55,6 +55,8 @@ class Task:
 
 
 class Board:
+    SCHEMA_VERSION = 1
+
     def __init__(self, db_path: Optional[str] = None):
         base_dir = Path(__file__).resolve().parents[2]
         self.db_path = str(base_dir / "planner.db") if db_path is None else db_path
@@ -87,6 +89,13 @@ class Board:
             (table_name,),
         ).fetchone()
         return row is not None
+
+    def _get_schema_version(self, conn: sqlite3.Connection) -> int:
+        row = conn.execute("PRAGMA user_version").fetchone()
+        return int(row[0]) if row else 0
+
+    def _set_schema_version(self, conn: sqlite3.Connection, version: int) -> None:
+        conn.execute(f"PRAGMA user_version = {version}")
 
     def _init_db(self):
         with self._connect() as conn:
@@ -132,6 +141,11 @@ class Board:
 
     def _migrate_schema(self):
         with self._connect() as conn:
+            version = self._get_schema_version(conn)
+
+            if version >= self.SCHEMA_VERSION:
+                return
+
             if self._table_exists(conn, "workspaces"):
                 if not self._column_exists(conn, "workspaces", "created_at"):
                     conn.execute(
@@ -321,6 +335,7 @@ class Board:
                             (target_workspace_id, row["id"]),
                         )
 
+            self._set_schema_version(conn, self.SCHEMA_VERSION)
             conn.commit()
 
     def _workspace_from_row(self, row: sqlite3.Row) -> Workspace:
