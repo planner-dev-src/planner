@@ -1,0 +1,7 @@
+<nav class="activity-bar">
+    <a class="activity-link {% if active_section == 'goals' %}active{% endif %}" href="#">G</a>
+    <a class="activity-link {% if active_section == 'state' %}active{% endif %}" href="#">S</a>
+    <a class="activity-link {% if active_section == 'boards' %}active{% endif %}" href="{{ url_for('boards.index') }}">B</a>
+    <a class="activity-link {% if active_section == 'services' %}active{% endif %}" href="#">V</a>
+    <a class="activity-link {% if active_section == 'artifacts' %}active{% endif %}" href="#">A</a>
+</nav>

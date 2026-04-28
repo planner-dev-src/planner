@@ -1,0 +1,61 @@
+.app-shell {
+    display: grid;
+    grid-template-columns: 64px 260px 1fr;
+    min-height: 100vh;
+}
+
+.activity-bar {
+    background: #1f2937;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 12px;
+}
+
+.activity-link {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: transparent;
+}
+
+.activity-link.active {
+    background: #374151;
+}
+
+.section-sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    padding: 20px;
+}
+
+.section-sidebar-header {
+    margin-bottom: 16px;
+}
+
+.workspace-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.workspace-link {
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+
+.workspace-link.active {
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 600;
+}
+
+.main-content {
+    padding: 24px;
+    overflow: auto;
+}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="board-page">
+    <header class="board-header">
+        <h1>{{ current_workspace.name }}</h1>
+        <p class="muted">Первый каркас нового shell + boards module.</p>
+    </header>
+
+    <section class="columns-row">
+        {% for column in columns %}
+        <div class="board-column">
+            <div class="column-header">
+                <h3>{{ column.name }}</h3>
+            </div>
+
+            <div class="task-list">
+                {% for task in tasks_by_column.get(column.id, []) %}
+                <div class="task-card">
+                    <div class="task-title">{{ task.title }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

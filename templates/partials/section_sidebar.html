@@ -1,0 +1,16 @@
+<div class="section-sidebar-inner">
+    <div class="section-sidebar-header">
+        <h2>Boards</h2>
+    </div>
+
+    <div class="workspace-list">
+        {% for workspace in workspaces %}
+        <a
+            class="workspace-link {% if current_workspace and workspace.id == current_workspace.id %}active{% endif %}"
+            href="{{ url_for('boards.index') }}"
+        >
+            {{ workspace.name }}
+        </a>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/shell.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/boards.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        {% include "partials/activity_bar.html" %}
+        <aside class="section-sidebar">
+            {% include "partials/section_sidebar.html" %}
+        </aside>
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
