@@ -1,9 +1,12 @@
 from pathlib import Path
 
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
-from src.ui.shell import ui_bp
 from src.boards.routes import boards_bp
+from src.ui.shell import ui_bp
+
+csrf = CSRFProtect()
 
 
 def create_app():
@@ -15,7 +18,9 @@ def create_app():
         static_folder=str(project_root / "static"),
     )
 
-    app.config["SECRET_KEY"] = "dev-secret-key"
+    app.config["SECRET_KEY"] = "change-this-secret-key-to-a-long-random-value"
+
+    csrf.init_app(app)
 
     app.register_blueprint(ui_bp)
     app.register_blueprint(boards_bp)

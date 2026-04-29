@@ -62,7 +62,6 @@ class Board:
         self.db_path = str(base_dir / "planner.db") if db_path is None else db_path
         self._init_db()
         self._migrate_schema()
-        self._ensure_default_workspace()
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
@@ -366,17 +365,6 @@ class Board:
             due_date=row["due_date"],
             created_at=row["created_at"],
         )
-
-    def _ensure_default_workspace(self):
-        workspaces = self.list_workspaces()
-        if workspaces:
-            for workspace in workspaces:
-                self._ensure_done_column(workspace.id)
-            return
-
-        workspace = self.add_workspace("Моё направление")
-        if workspace is not None:
-            self._ensure_done_column(workspace.id)
 
     def _ensure_done_column(self, workspace_id: str) -> Optional[Column]:
         with self._connect() as conn:

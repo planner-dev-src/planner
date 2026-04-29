@@ -4,5 +4,5 @@ ui_bp = Blueprint("ui", __name__)
 
 
 @ui_bp.route("/")
-def index():
+def root():
     return redirect(url_for("boards.index"))
