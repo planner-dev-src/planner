@@ -22,10 +22,10 @@ def get_first_workspace(board):
     return workspaces[0] if workspaces else None
 
 
-def get_active_workspace(board):
-    workspace_id = (request.args.get("workspace_id") or "").strip()
-    if workspace_id:
-        workspace = board.get_workspace(workspace_id)
+def get_active_workspace(board, workspace_id: Optional[str] = None):
+    resolved_workspace_id = (workspace_id or request.args.get("workspace_id") or "").strip()
+    if resolved_workspace_id:
+        workspace = board.get_workspace(resolved_workspace_id)
         if workspace is not None:
             return workspace
     return get_first_workspace(board)
@@ -174,12 +174,13 @@ def make_edit_task_form(task_id: str, columns):
 
 def build_template_context(
     board,
+    workspace_id: Optional[str] = None,
     edit_workspace_id: Optional[str] = None,
     edit_column_id: Optional[str] = None,
     edit_task_id: Optional[str] = None,
 ):
     workspaces = get_all_workspaces(board)
-    active_workspace = get_active_workspace(board)
+    active_workspace = get_active_workspace(board, workspace_id=workspace_id)
 
     add_workspace_form = AddWorkspaceForm(prefix="add-workspace")
 
@@ -189,8 +190,7 @@ def build_template_context(
 
     for workspace in workspaces:
         edit_form = EditWorkspaceForm(prefix=f"edit-workspace-{workspace.id}")
-        if edit_workspace_id == workspace.id:
-            edit_form.name.data = workspace.name
+        edit_form.name.data = workspace.name
         edit_workspace_forms[workspace.id] = edit_form
 
         delete_form = SimplePostForm(prefix=f"delete-workspace-{workspace.id}")
@@ -227,8 +227,7 @@ def build_template_context(
 
             edit_column_form = EditColumnForm(prefix=f"edit-column-{column.id}")
             edit_column_form.workspace_id.data = active_workspace.id
-            if edit_column_id == column.id:
-                edit_column_form.name.data = column.name
+            edit_column_form.name.data = column.name
             edit_column_forms[column.id] = edit_column_form
 
             delete_column_form = SimplePostForm(prefix=f"delete-column-{column.id}")
@@ -239,12 +238,11 @@ def build_template_context(
             for task in tasks_by_column[column.id]:
                 edit_task_form = make_edit_task_form(task.id, columns)
                 edit_task_form.workspace_id.data = active_workspace.id
-                if edit_task_id == task.id:
-                    edit_task_form.title.data = task.title
-                    edit_task_form.description.data = task.description or ""
-                    edit_task_form.priority.data = task.priority or "medium"
-                    edit_task_form.due_date.data = task.get_due_date_as_date()
-                    edit_task_form.column_id.data = task.column_id
+                edit_task_form.title.data = task.title
+                edit_task_form.description.data = task.description or ""
+                edit_task_form.priority.data = task.priority or "medium"
+                edit_task_form.due_date.data = task.get_due_date_as_date()
+                edit_task_form.column_id.data = task.column_id
                 edit_task_forms[task.id] = edit_task_form
 
                 delete_task_form = SimplePostForm(prefix=f"delete-task-{task.id}")

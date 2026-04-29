@@ -56,11 +56,72 @@ def _finish(result):
     return redirect_index(result.workspace_id, **params)
 
 
+def _render_index_with_context(
+    *,
+    workspace_id=None,
+    edit_workspace_id=None,
+    edit_column_id=None,
+    edit_task_id=None,
+    add_workspace_open=False,
+    add_column_open=False,
+    add_task_open_column_id=None,
+    add_workspace_form=None,
+    add_column_form=None,
+    add_task_form=None,
+    edit_workspace_form=None,
+    edit_column_form=None,
+    edit_task_form=None,
+):
+    context = build_template_context(
+        board,
+        workspace_id=workspace_id,
+        edit_workspace_id=edit_workspace_id,
+        edit_column_id=edit_column_id,
+        edit_task_id=edit_task_id,
+    )
+
+    if add_workspace_form is not None:
+        context["add_workspace_form"] = add_workspace_form
+
+    if add_column_form is not None:
+        context["add_column_form"] = add_column_form
+
+    if add_task_form is not None:
+        column_id = (add_task_form.column_id.data or "").strip()
+        if column_id and column_id in context["add_task_forms"]:
+            context["add_task_forms"][column_id] = add_task_form
+
+    if edit_workspace_form is not None and edit_workspace_id:
+        if edit_workspace_id in context["edit_workspace_forms"]:
+            context["edit_workspace_forms"][edit_workspace_id] = edit_workspace_form
+
+    if edit_column_form is not None and edit_column_id:
+        if edit_column_id in context["edit_column_forms"]:
+            context["edit_column_forms"][edit_column_id] = edit_column_form
+
+    if edit_task_form is not None and edit_task_id:
+        if edit_task_id in context["edit_task_forms"]:
+            context["edit_task_forms"][edit_task_id] = edit_task_form
+
+    context["add_workspace_open"] = add_workspace_open
+    context["add_column_open"] = add_column_open
+    context["add_task_open_column_id"] = add_task_open_column_id
+
+    # для подсветки буквы B в activity bar
+    context["active_section"] = "boards"
+
+    return render_template("boards/index.html", **context)
+
+
 @boards_bp.route("/", methods=["GET"])
 def index():
     edit_workspace_id = (request.args.get("edit_workspace") or "").strip() or None
     edit_column_id = (request.args.get("edit_column") or "").strip() or None
     edit_task_id = (request.args.get("edit_task") or "").strip() or None
+
+    add_workspace_open = request.args.get("add_workspace") == "1"
+    add_column_open = request.args.get("add_column") == "1"
+    add_task_open_column_id = (request.args.get("add_task_column") or "").strip() or None
 
     context = build_template_context(
         board,
@@ -68,6 +129,13 @@ def index():
         edit_column_id=edit_column_id,
         edit_task_id=edit_task_id,
     )
+    context["add_workspace_open"] = add_workspace_open
+    context["add_column_open"] = add_column_open
+    context["add_task_open_column_id"] = add_task_open_column_id
+
+    # для подсветки буквы B в activity bar
+    context["active_section"] = "boards"
+
     return render_template("boards/index.html", **context)
 
 
@@ -76,7 +144,10 @@ def add_workspace():
     form = AddWorkspaceForm(prefix="add-workspace")
     if not form.validate_on_submit():
         flash_form_errors(form)
-        return redirect_index()
+        return _render_index_with_context(
+            add_workspace_form=form,
+            add_workspace_open=True,
+        )
 
     result = create_workspace(board, form.name.data)
     return _finish(result)
@@ -90,7 +161,11 @@ def edit_workspace(workspace_id):
     form = EditWorkspaceForm(prefix=f"edit-workspace-{workspace_id}")
     if not form.validate_on_submit():
         flash_form_errors(form)
-        return redirect_index(workspace_id, edit_workspace=workspace_id)
+        return _render_index_with_context(
+            workspace_id=workspace_id,
+            edit_workspace_id=workspace_id,
+            edit_workspace_form=form,
+        )
 
     result = rename_workspace(board, workspace_id, form.name.data)
     return _finish(result)
@@ -125,7 +200,11 @@ def add_column():
 
     if not form.validate_on_submit():
         flash_form_errors(form)
-        return redirect_index(workspace_id_raw)
+        return _render_index_with_context(
+            workspace_id=workspace_id_raw,
+            add_column_form=form,
+            add_column_open=True,
+        )
 
     result = create_column(board, (form.workspace_id.data or "").strip(), form.name.data)
     return _finish(result)
@@ -151,7 +230,11 @@ def edit_column(column_id):
     form = EditColumnForm(prefix=prefix)
     if not form.validate_on_submit():
         flash_form_errors(form)
-        return redirect_index(workspace_id, edit_column=column_id)
+        return _render_index_with_context(
+            workspace_id=workspace_id,
+            edit_column_id=column_id,
+            edit_column_form=form,
+        )
 
     result = rename_column(board, workspace_id, column_id, form.name.data)
     return _finish(result)
@@ -196,7 +279,12 @@ def add_task():
     form = AddTaskForm(prefix=form_prefix)
     if not form.validate_on_submit():
         flash_form_errors(form)
-        return redirect_index(workspace_id_raw)
+        column_id = (form.column_id.data or "").strip()
+        return _render_index_with_context(
+            workspace_id=workspace_id_raw,
+            add_task_form=form,
+            add_task_open_column_id=column_id or None,
+        )
 
     result = create_task(
         board=board,
@@ -232,7 +320,11 @@ def edit_task(task_id):
 
     if not form.validate_on_submit():
         flash_form_errors(form)
-        return redirect_index(workspace_id, edit_task=task_id)
+        return _render_index_with_context(
+            workspace_id=workspace_id,
+            edit_task_id=task_id,
+            edit_task_form=form,
+        )
 
     result = update_task(
         board=board,

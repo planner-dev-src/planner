@@ -6,8 +6,8 @@
     <div class="workspace-list">
         {% for workspace in workspaces %}
         <a
-            class="workspace-link {% if current_workspace and workspace.id == current_workspace.id %}active{% endif %}"
-            href="{{ url_for('boards.index') }}"
+            class="workspace-link {% if active_workspace and workspace.id == active_workspace.id %}active{% endif %}"
+            href="{{ url_for('boards.index', workspace_id=workspace.id) }}"
         >
             {{ workspace.name }}
         </a>
