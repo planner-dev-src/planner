@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Goals{% endblock %}
+
+{% block content %}
+<div class="board-page">
+    <header class="board-header">
+        <h1>Goals</h1>
+        <p class="muted">Список целей текущего workspace.</p>
+    </header>
+
+    {% if workspace_id %}
+    <p style="margin-bottom: 16px;">
+        <a href="{{ url_for('goals.create_goal', workspace_id=workspace_id) }}">Создать цель</a>
+    </p>
+    {% else %}
+    <p class="muted" style="margin-bottom: 16px;">
+        Workspace не выбран. Передай <code>workspace_id</code> в query string.
+    </p>
+    {% endif %}
+
+    {% if goals %}
+    <section class="task-list">
+        {% for goal in goals %}
+        <article class="task-card">
+            <div class="task-title">{{ goal.title }}</div>
+
+            <p class="muted" style="margin-top: 8px;">
+                Статус: {{ goal.status }}
+            </p>
+
+            <p class="muted" style="margin-top: 4px;">
+                Приоритет: {{ goal.priority }}
+            </p>
+
+            {% if goal.description %}
+            <p style="margin-top: 8px;">{{ goal.description }}</p>
+            {% endif %}
+
+            {% if workspace_id %}
+            <div style="display: flex; gap: 12px; align-items: center; margin-top: 12px;">
+                <a href="{{ url_for('goals.edit_goal', goal_id=goal.id, workspace_id=workspace_id) }}">
+                    Редактировать
+                </a>
+
+                <form method="post" action="{{ url_for('goals.delete_goal', goal_id=goal.id) }}" style="margin: 0;">
+                    <input type="hidden" name="workspace_id" value="{{ workspace_id }}">
+                    <button type="submit">Удалить</button>
+                </form>
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </section>
+    {% else %}
+    <p class="muted">Целей пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

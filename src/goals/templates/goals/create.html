@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Create goal{% endblock %}
+
+{% block content %}
+<div class="board-page">
+    <header class="board-header">
+        <h1>Create goal</h1>
+        <p class="muted">Создание новой цели в рамках workspace.</p>
+    </header>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <div style="margin-bottom: 12px;">
+            {{ form.title.label }}
+            <div>{{ form.title(size=80) }}</div>
+            {% if form.title.errors %}
+            <ul>
+                {% for error in form.title.errors %}
+                <li class="muted">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            {{ form.description.label }}
+            <div>{{ form.description(rows=6, cols=80) }}</div>
+            {% if form.description.errors %}
+            <ul>
+                {% for error in form.description.errors %}
+                <li class="muted">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            {{ form.kind.label }}
+            <div>{{ form.kind() }}</div>
+            {% if form.kind.errors %}
+            <ul>
+                {% for error in form.kind.errors %}
+                <li class="muted">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            {{ form.status.label }}
+            <div>{{ form.status() }}</div>
+            {% if form.status.errors %}
+            <ul>
+                {% for error in form.status.errors %}
+                <li class="muted">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            {{ form.priority.label }}
+            <div>{{ form.priority() }}</div>
+            {% if form.priority.errors %}
+            <ul>
+                {% for error in form.priority.errors %}
+                <li class="muted">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            {{ form.parent_id.label }}
+            <div>{{ form.parent_id() }}</div>
+            {% if form.parent_id.errors %}
+            <ul>
+                {% for error in form.parent_id.errors %}
+                <li class="muted">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+            {{ form.submit() }}
+            <a href="{{ url_for('goals.list_goals', workspace_id=workspace_id) }}">Назад к списку</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

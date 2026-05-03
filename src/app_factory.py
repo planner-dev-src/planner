@@ -3,26 +3,31 @@ from pathlib import Path
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
-from src.boards.routes import boards_bp
-from src.ui.shell import ui_bp
+from src.boards import boards_bp
+from src.knowledge import init_app as init_knowledge
+from src.projects import projects_bp
+from src.ui import ui_bp
+
 
 csrf = CSRFProtect()
 
 
 def create_app():
-    project_root = Path(__file__).resolve().parent.parent
-
     app = Flask(
         __name__,
-        template_folder=str(project_root / "templates"),
-        static_folder=str(project_root / "static"),
+        template_folder=str(Path(__file__).resolve().parents[1] / "templates"),
+        static_folder=str(Path(__file__).resolve().parents[1] / "static"),
     )
 
-    app.config["SECRET_KEY"] = "change-this-secret-key-to-a-long-random-value"
+    app.config["SECRET_KEY"] = "dev-secret-key"
+    app.config["WTF_CSRF_ENABLED"] = True
 
     csrf.init_app(app)
 
     app.register_blueprint(ui_bp)
+    app.register_blueprint(projects_bp)
     app.register_blueprint(boards_bp)
+
+    init_knowledge(app)
 
     return app

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Create project</title>
+</head>
+<body>
+    <h1>Create project</h1>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.title.label }}
+        </div>
+        <div>
+            {{ form.title(size=60) }}
+        </div>
+
+        {% if form.title.errors %}
+            <ul>
+                {% for error in form.title.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+
+    <p>
+        <a href="{{ url_for('projects.list_projects') }}">Назад к списку</a>
+    </p>
+</body>
+</html>

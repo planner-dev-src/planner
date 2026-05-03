@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Projects</title>
+</head>
+<body>
+    <h1>Projects list</h1>
+
+    <p>
+        <a href="{{ url_for('projects.create_project_view') }}">Создать проект</a>
+    </p>
+
+    {% if projects %}
+        <ul>
+            {% for project in projects %}
+                <li>
+                    #{{ project.id }} — {{ project.title }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Пока проектов нет.</p>
+    {% endif %}
+</body>
+</html>
