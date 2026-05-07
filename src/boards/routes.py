@@ -38,8 +38,8 @@ boards_bp = Blueprint(
     "boards",
     __name__,
     url_prefix="/boards",
-    template_folder="templates",
 )
+
 
 board = Board()
 
@@ -107,7 +107,6 @@ def _render_index_with_context(
     context["add_column_open"] = add_column_open
     context["add_task_open_column_id"] = add_task_open_column_id
 
-    # для подсветки раздела "Доски" в activity bar
     context["active_section"] = "boards"
 
     return render_template("boards/index.html", **context)
@@ -132,8 +131,6 @@ def index():
     context["add_workspace_open"] = add_workspace_open
     context["add_column_open"] = add_column_open
     context["add_task_open_column_id"] = add_task_open_column_id
-
-    # для подсветки раздела "Доски" в activity bar
     context["active_section"] = "boards"
 
     return render_template("boards/index.html", **context)
@@ -210,7 +207,7 @@ def add_column():
     return _finish(result)
 
 
-@boards_bp.route("/columns/<column_id>/edit", methods=["GET", "POST"])
+@boards_bp.route("/columns/lumn_id>/edit", methods=["GET", "POST"])
 def edit_column(column_id):
     prefix = f"edit-column-{column_id}"
     workspace_id = resolve_workspace_id(
@@ -240,7 +237,7 @@ def edit_column(column_id):
     return _finish(result)
 
 
-@boards_bp.route("/columns/<column_id>/delete", methods=["POST"])
+@boards_bp.route("/columns/lumn_id>/delete", methods=["POST"])
 def delete_column(column_id):
     prefix = f"delete-column-{column_id}"
     form = SimplePostForm(prefix=prefix)
