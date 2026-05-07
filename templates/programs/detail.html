@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}{{ program.title }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .summary-card {
+    min-width: 0;
+  }
+
+  .summary-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 1100px) {
+    .summary-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <header class="topbar">
+    <div class="title-group">
+      <h1>{{ program.title }}</h1>
+      <p>Детали программы, связанные проекты, вложения и сводка по состояниям.</p>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="{{ url_for('programs.index') }}" class="btn btn-secondary">
+        К списку программ
+      </a>
+
+      {% if program.status == "archived" %}
+        <form
+          method="post"
+          action="{{ url_for('programs.unarchive', program_id=program.id) }}"
+          class="inline-form"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn">Разархивировать</button>
+        </form>
+      {% else %}
+        <form
+          method="post"
+          action="{{ url_for('programs.archive', program_id=program.id) }}"
+          class="inline-form"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-secondary">Архив</button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Описание программы</h2>
+        <p>Основная информация по программе и её текущему содержимому.</p>
+      </div>
+    </div>
+
+    <details class="compact-details"{% if edit_open %} open{% endif %}>
+      <summary>Редактировать программу</summary>
+
+      <form
+        method="post"
+        action="{{ url_for('programs.edit', program_id=program.id) }}"
+        class="compact-form"
+        style="margin-top: 12px;"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {% if edit_error %}
+          <div class="flash-message error" style="margin-bottom: 12px;">
+            {{ edit_error }}
+          </div>
+        {% endif %}
+
+        <div class="field" style="margin-bottom: 12px;">
+          <label for="title">Название программы</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value="{{ edit_title_value }}"
+            required
+          >
+        </div>
+
+        <div class="field" style="margin-bottom: 12px;">
+          <label for="note">Описание</label>
+          <textarea
+            id="note"
+            name="note"
+            rows="6"
+            placeholder="Краткое описание, цели, рамки и заметки по программе."
+          >{{ edit_note_value }}</textarea>
+        </div>
+
+        <div class="task-actions">
+          <button type="submit" class="btn">Сохранить изменения</button>
+        </div>
+      </form>
+    </details>
+
+    {% if program.note_raw %}
+      <p class="task-description" style="margin-top: 16px;">{{ program.note_raw }}</p>
+    {% elif program.note_html %}
+      <div class="task-description" style="margin-top: 16px;">{{ program.note_html|safe }}</div>
+    {% else %}
+      <div class="empty-box" style="margin-top: 16px;">
+        Для этой программы описание пока не добавлено.
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Мониторинг</h2>
+        <p>Сводка по связанным проектам программы в компактном виде.</p>
+      </div>
+    </div>
+
+    <details class="compact-details" open>
+      <summary>Сводка по связанным проектам программы</summary>
+
+      <div class="summary-grid">
+        <article class="task-card summary-card">
+          <h3 class="task-title">Всего проектов</h3>
+          <p class="summary-value">{{ monitoring.total_projects }}</p>
+        </article>
+
+        <article class="task-card summary-card">
+          <h3 class="task-title">В работе</h3>
+          <p class="summary-value">{{ monitoring.in_progress }}</p>
+        </article>
+
+        <article class="task-card summary-card">
+          <h3 class="task-title">Завершено</h3>
+          <p class="summary-value">{{ monitoring.completed }}</p>
+        </article>
+
+        <article class="task-card summary-card">
+          <h3 class="task-title">Запланировано</h3>
+          <p class="summary-value">{{ monitoring.planned }}</p>
+        </article>
+
+        <article class="task-card summary-card">
+          <h3 class="task-title">На паузе</h3>
+          <p class="summary-value">{{ monitoring.on_hold }}</p>
+        </article>
+      </div>
+    </details>
+  </section>
+
+  <section class="board-shell" id="projects">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Связанные проекты</h2>
+        <p>Проекты, относящиеся к данной программе.</p>
+      </div>
+    </div>
+
+    <details class="compact-details">
+      <summary>Создать проект для этой программы</summary>
+
+      <form
+        method="post"
+        action="{{ url_for('projects.project_create_for_program', program_id=program.id) }}"
+        class="compact-form"
+        style="margin-top: 12px;"
+      >
+        {{ project_form.hidden_tag() }}
+
+        <div class="field" style="margin-bottom: 12px;">
+          {{ project_form.title.label }}
+          {{ project_form.title(
+            id="project_title",
+            required=True,
+            placeholder="Например: MVP платформы"
+          ) }}
+        </div>
+
+        <div class="field" style="margin-bottom: 12px;">
+          {{ project_form.description.label }}
+          {{ project_form.description(
+            id="project_description",
+            rows=4,
+            placeholder="Кратко опиши, что именно нужно сделать в рамках этой программы."
+          ) }}
+        </div>
+
+        <div class="task-actions">
+          {{ project_form.submit(class_="btn", value="Создать проект") }}
+        </div>
+      </form>
+    </details>
+
+    {% if projects %}
+      <div class="task-list" style="margin-top: 16px;">
+        {% for project in projects %}
+          <article class="task-card">
+            <h3 class="task-title">
+              <a href="{{ url_for('projects.project_detail', project_id=project.id) }}">
+                {{ project.title }}
+              </a>
+            </h3>
+
+            {% if project.description %}
+              <p class="task-description">{{ project.description }}</p>
+            {% else %}
+              <p class="task-description">Описание проекта пока не добавлено.</p>
+            {% endif %}
+
+            <div class="task-actions">
+              <a
+                href="{{ url_for('projects.project_detail', project_id=project.id) }}"
+                class="btn btn-secondary btn-small"
+              >
+                Открыть
+              </a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-box" style="margin-top: 16px;">
+        У этой программы пока нет связанных проектов.
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="board-shell" id="attachments">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Вложения</h2>
+        <p>Файлы, документы и дополнительные материалы программы.</p>
+      </div>
+    </div>
+
+    <details class="compact-details">
+      <summary>Загрузить вложение</summary>
+
+      <form
+        method="post"
+        action="{{ url_for('programs.upload_attachment', program_id=program.id) }}"
+        enctype="multipart/form-data"
+        class="compact-form"
+        style="margin-top: 12px;"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="field" style="margin-bottom: 12px;">
+          <label for="kind">Тип вложения</label>
+          <select id="kind" name="kind">
+            <option value="appendix">Приложение</option>
+            <option value="report">Отчёт</option>
+            <option value="document">Документ</option>
+            <option value="presentation">Презентация</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom: 12px;">
+          <label for="file">Файл</label>
+          <input type="file" id="file" name="file" required>
+        </div>
+
+        <div class="task-actions">
+          <button type="submit" class="btn">Загрузить файл</button>
+        </div>
+      </form>
+    </details>
+
+    {% if attachments %}
+      <div class="task-list" style="margin-top: 16px;">
+        {% for attachment in attachments %}
+          <article class="task-card">
+            <h3 class="task-title">{{ attachment.filename }}</h3>
+
+            <p class="task-description">
+              Тип: {{ attachment.kind or "не указан" }}
+            </p>
+
+            <div class="task-actions">
+              <a
+                href="{{ url_for('programs.download_attachment', attachment_id=attachment.id) }}"
+                class="btn btn-secondary btn-small"
+              >
+                Скачать
+              </a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-box" style="margin-top: 16px;">
+        Вложения для этой программы пока не загружены.
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

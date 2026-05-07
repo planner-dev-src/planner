@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Клонирование проекта
+{% endblock %}
+
+{% block content %}
+    <p>
+        <a href="{{ url_for('projects.projects_list') }}">К активным проектам</a>
+        |
+        <a href="{{ url_for('projects.projects_archive') }}">К архиву</a>
+    </p>
+
+    <h1>Клонирование проекта</h1>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        {% if is_preselected and preselected_project %}
+            <p>
+                <strong>Исходный проект:</strong>
+                {{ preselected_project.title }}
+                —
+                <a href="{{ url_for('projects.project_clone', change_source=1) }}">
+                    выбрать другой
+                </a>
+            </p>
+            {{ form.fixed_source_project_id() }}
+        {% else %}
+            <p>
+                {{ form.source_project_id.label }}<br>
+                {{ form.source_project_id() }}
+            </p>
+        {% endif %}
+
+        <p>
+            {{ form.new_root_title.label }}<br>
+            {{ form.new_root_title(size=60) }}
+        </p>
+
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

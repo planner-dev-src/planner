@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Архив проектов
+{% endblock %}
+
+{% block content %}
+    <h1>Архив проектов</h1>
+
+    <p>
+        <a href="{{ url_for('projects.projects_list') }}">← К активным проектам</a>
+    </p>
+
+    {% if projects %}
+        <ul>
+            {% for project in projects %}
+                <li>
+                    <a href="{{ url_for('projects.project_detail', project_id=project.id) }}">
+                        {{ project.title }}
+                    </a>
+                    <small>
+                        — создан: {{ project.created_at.strftime('%Y-%m-%d %H:%M UTC') }}
+                    </small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><em>Архив пуст.</em></p>
+    {% endif %}
+{% endblock %}

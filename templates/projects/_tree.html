@@ -1,0 +1,36 @@
+{% macro render_project_tree(node, current_project_id=None, is_root=False) %}
+<ul class="{{ 'tree-list' if is_root else 'tree-list tree-list-children' }}">
+    <li class="tree-list-item">
+        <div class="tree-node {{ 'is-current' if node.id == current_project_id else '' }}">
+            <div class="tree-row">
+                <a
+                    class="tree-title"
+                    href="{{ url_for('projects.project_detail', project_id=node.id) }}"
+                >
+                    {{ node.title }}
+                </a>
+                <span class="tree-meta">ID: {{ node.id }}, статус: {{ node.status }}</span>
+            </div>
+
+            {% if node.description %}
+                <div class="tree-description">{{ node.description }}</div>
+            {% endif %}
+
+            <div class="tree-actions">
+                <a href="{{ url_for('projects.project_structure', project_id=node.id) }}">
+                    Открыть структуру
+                </a>
+                <a href="{{ url_for('projects.project_detail', project_id=node.id) }}">
+                    Открыть карточку
+                </a>
+            </div>
+
+            {% if node.children %}
+                {% for child in node.children %}
+                    {{ render_project_tree(child, current_project_id, false) }}
+                {% endfor %}
+            {% endif %}
+        </div>
+    </li>
+</ul>
+{% endmacro %}

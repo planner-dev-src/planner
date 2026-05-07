@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование проекта{% endblock %}
+
+{% block content %}
+<div class="page">
+  <header class="topbar">
+    <div class="title-group">
+      <h1>Редактирование проекта</h1>
+      <p>Измените название и описание проекта, сохранив текущую структуру и связи.</p>
+    </div>
+
+    <div class="topbar-actions">
+      <a
+        href="{{ url_for('projects.project_detail', project_id=project.id) }}"
+        class="btn btn-secondary"
+      >
+        К проекту
+      </a>
+
+      <a
+        href="{{ url_for('projects.projects_list') }}"
+        class="btn btn-secondary"
+      >
+        Активные проекты
+      </a>
+
+      <a
+        href="{{ url_for('projects.projects_archive') }}"
+        class="btn btn-secondary"
+      >
+        Архив
+      </a>
+    </div>
+  </header>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Основные сведения</h2>
+        <p>Отредактируйте ключевые данные проекта и сохраните изменения.</p>
+      </div>
+    </div>
+
+    <div class="task-card" style="margin-top: 16px;">
+      <form method="post">
+        {{ form.hidden_tag() }}
+        {{ form.parent_id() }}
+
+        <div class="field" style="margin-bottom: 14px;">
+          <label for="{{ form.title.id }}">{{ form.title.label.text }}</label>
+          {{ form.title() }}
+          {% if form.title.errors %}
+            <div class="field-errors">
+              {% for error in form.title.errors %}
+                <div class="field-error">{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="field" style="margin-bottom: 14px;">
+          <label for="{{ form.description.id }}">{{ form.description.label.text }}</label>
+          {{ form.description(rows=6) }}
+          {% if form.description.errors %}
+            <div class="field-errors">
+              {% for error in form.description.errors %}
+                <div class="field-error">{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="task-actions" style="margin-top: 20px; flex-wrap: wrap;">
+          <button type="submit" class="btn">Сохранить изменения</button>
+
+          <a
+            href="{{ url_for('projects.project_detail', project_id=project.id) }}"
+            class="btn btn-secondary"
+          >
+            Отмена
+          </a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Текущий контекст</h2>
+        <p>Краткая справка по редактируемому проекту перед сохранением.</p>
+      </div>
+    </div>
+
+    <div class="task-list" style="margin-top: 16px;">
+      <article class="task-card">
+        <h3 class="task-title">Идентификатор</h3>
+        <p class="task-description">#{{ project.id }}</p>
+      </article>
+
+      <article class="task-card">
+        <h3 class="task-title">Статус</h3>
+        <p class="task-description">
+          {% if project.status == "archived" %}
+            В архиве
+          {% else %}
+            Активный
+          {% endif %}
+        </p>
+      </article>
+
+      <article class="task-card">
+        <h3 class="task-title">Родительский проект</h3>
+        <p class="task-description">
+          {% if project.parent_id %}
+            #{{ project.parent_id }}
+          {% else %}
+            Корневой проект
+          {% endif %}
+        </p>
+      </article>
+
+      <article class="task-card">
+        <h3 class="task-title">Программа</h3>
+        <p class="task-description">
+          {% if project.program_id %}
+            {{ project.program_id }}
+          {% else %}
+            Не привязан к программе
+          {% endif %}
+        </p>
+      </article>
+    </div>
+  </section>
+</div>
+{% endblock %}

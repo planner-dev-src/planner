@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if show_archived %}Архив программ{% else %}Программы{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <header class="topbar">
+    <div class="title-group">
+      <h1>{% if show_archived %}Архив программ{% else %}Программы{% endif %}</h1>
+      <p>
+        {% if show_archived %}
+          Архивные программы с возможностью восстановления.
+        {% else %}
+          Список программ, переход к деталям, связанным проектам и вложениям.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="topbar-actions">
+      {% if show_archived %}
+        <a href="{{ url_for('programs.index') }}" class="btn btn-secondary">
+          Активные программы
+        </a>
+      {% else %}
+        <a href="{{ url_for('programs.archived') }}" class="btn btn-secondary">
+          Архив
+        </a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if not show_archived %}
+    <section class="board-shell">
+      <div class="board-header">
+        <div class="board-title-wrap">
+          <h2>Создание программы</h2>
+          <p>Новая программа создаётся прямо из списка, без отдельного экрана.</p>
+        </div>
+      </div>
+
+      <details class="compact-details"{% if create_open %} open{% endif %}>
+        <summary>Добавить программу</summary>
+
+        <form
+          method="post"
+          action="{{ url_for('programs.create') }}"
+          class="compact-form"
+          style="margin-top: 12px;"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {% if create_error %}
+            <div class="flash-message error" style="margin-bottom: 12px;">
+              {{ create_error }}
+            </div>
+          {% endif %}
+
+          <div class="field" style="margin-bottom: 12px;">
+            <label for="title">Название программы</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value="{{ create_title_value or '' }}"
+              placeholder="Например: Платформа планирования"
+              required
+            >
+          </div>
+
+          <div class="field" style="margin-bottom: 12px;">
+            <label for="note">Описание</label>
+            <textarea
+              id="note"
+              name="note"
+              rows="6"
+              placeholder="Кратко опиши цели, границы и содержание программы."
+            >{{ create_note_value or '' }}</textarea>
+          </div>
+
+          <div class="task-actions">
+            <button type="submit" class="btn">Создать программу</button>
+          </div>
+        </form>
+      </details>
+    </section>
+  {% endif %}
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>
+          {% if show_archived %}
+            Архивные программы
+          {% else %}
+            Список программ
+          {% endif %}
+        </h2>
+        <p>Единый формат карточек и действий, как в других разделах приложения.</p>
+      </div>
+    </div>
+
+    {% if programs %}
+      <div class="task-list">
+        {% for program in programs %}
+          <article class="task-card">
+            <h3 class="task-title">
+              <a href="{{ url_for('programs.detail', program_id=program.id) }}">
+                {{ program.title }}
+              </a>
+            </h3>
+
+            {% if program.note_raw %}
+              <p class="task-description">{{ program.note_raw }}</p>
+            {% elif program.note_html %}
+              <p class="task-description">{{ program.note_html|striptags }}</p>
+            {% else %}
+              <p class="task-description">Описание пока не добавлено.</p>
+            {% endif %}
+
+            <div class="task-actions">
+              <a
+                href="{{ url_for('programs.detail', program_id=program.id) }}"
+                class="btn btn-secondary btn-small"
+              >
+                Открыть
+              </a>
+
+              {% if show_archived %}
+                <form
+                  method="post"
+                  action="{{ url_for('programs.unarchive', program_id=program.id) }}"
+                  class="inline-form"
+                >
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-secondary btn-small">
+                    Разархивировать
+                  </button>
+                </form>
+              {% else %}
+                <form
+                  method="post"
+                  action="{{ url_for('programs.archive', program_id=program.id) }}"
+                  class="inline-form"
+                >
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-secondary btn-small">
+                    Архив
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-box">
+        {% if show_archived %}
+          Архивных программ пока нет.
+        {% else %}
+          Программы ещё не созданы.
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% from "projects/_tree.html" import render_project_tree %}
+
+{% block title %}
+    Структура проекта: {{ project.title }}
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .project-structure-page {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .project-structure-nav {
+        margin-bottom: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .project-structure-nav a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+
+    .project-structure-nav a:hover {
+        text-decoration: underline;
+    }
+
+    .project-structure-banner {
+        margin-bottom: 18px;
+        padding: 12px 14px;
+        border: 1px solid #9ec5fe;
+        background: #f4f9ff;
+        border-radius: 10px;
+        color: #174ea6;
+    }
+
+    .project-structure-banner p {
+        margin: 0 0 8px 0;
+    }
+
+    .project-structure-banner p:last-child {
+        margin-bottom: 0;
+    }
+
+    .project-structure-banner-actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .project-structure-banner-actions a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+
+    .project-structure-banner-actions a:hover {
+        text-decoration: underline;
+    }
+
+    .project-structure-card {
+        background: #fff;
+        border: 1px solid #dcdfe3;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    .tree-list {
+        list-style: none;
+        margin: 0;
+        padding-left: 0;
+    }
+
+    .tree-list-children {
+        margin-top: 10px;
+        margin-left: 24px;
+        padding-left: 18px;
+        border-left: 1px solid #d0d7de;
+    }
+
+    .tree-list-item {
+        margin: 0;
+        padding: 0;
+    }
+
+    .tree-node {
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .tree-node.is-current {
+        border-color: #9ec5fe;
+        background: #f4f9ff;
+    }
+
+    .tree-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tree-title {
+        font-weight: 700;
+        color: #111827;
+        text-decoration: none;
+    }
+
+    .tree-title:hover {
+        text-decoration: underline;
+    }
+
+    .tree-meta {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .tree-description {
+        margin-top: 6px;
+        color: #4b5563;
+        font-size: 14px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+    }
+
+    .tree-actions {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .tree-actions a {
+        color: #0d6efd;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .tree-actions a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="project-structure-page">
+    <nav class="project-structure-nav">
+        <a href="{{ url_for('projects.projects_list') }}">← К активным проектам</a>
+        <a href="{{ url_for('projects.projects_archive') }}">К архиву</a>
+        <a href="{{ url_for('projects.project_detail', project_id=project.id) }}">К карточке проекта</a>
+    </nav>
+
+    <header class="page-header">
+        <h1>Структура проекта: {{ project.title }}</h1>
+        <p>ID: {{ project.id }}, статус: {{ project.status }}</p>
+    </header>
+
+    {% if is_cloned_view %}
+        <section class="project-structure-banner">
+            <p><strong>Создана новая копия.</strong></p>
+            <p>Вы сейчас смотрите структуру только что созданной копии проекта.</p>
+
+            {% if source_project_id and source_project_title %}
+                <p>Источник клонирования: {{ source_project_title }}</p>
+
+                <div class="project-structure-banner-actions">
+                    <a href="{{ url_for('projects.project_detail', project_id=source_project_id) }}">
+                        Открыть карточку исходного проекта
+                    </a>
+                    <a href="{{ url_for('projects.project_structure', project_id=source_project_id) }}">
+                        Открыть структуру исходного проекта
+                    </a>
+                    <a href="{{ url_for('projects.project_clone', source_project_id=project.id) }}">
+                        Клонировать уже эту копию
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <section class="project-structure-card">
+        {% if tree_root %}
+            {{ render_project_tree(tree_root, project.id, true) }}
+        {% else %}
+            <p><em>Структура проекта пуста.</em></p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Удаление проекта: {{ project.title }}
+{% endblock %}
+
+{% block content %}
+    <p>
+        <a href="{{ url_for('projects.project_detail', project_id=project.id) }}">
+            ← Вернуться к карточке проекта
+        </a>
+        |
+        <a href="{{ url_for('projects.projects_archive') }}">К архиву</a>
+    </p>
+
+    <h1>Удаление проекта</h1>
+
+    <p><strong>Проект:</strong> {{ project.title }}</p>
+    <p><strong>Статус:</strong> {{ project.status }}</p>
+    <p><strong>Создан:</strong> {{ project.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+    <p><strong>Прямых дочерних элементов:</strong> {{ delete_info["children_count"] }}</p>
+    <p><strong>Всего вложенных элементов:</strong> {{ delete_info["descendants_count"] }}</p>
+
+    {% if project.status != "archived" %}
+        <p><strong>Удаление недоступно:</strong> сначала отправьте проект в архив.</p>
+    {% endif %}
+
+    {% if delete_info["has_children"] %}
+        <p>
+            У проекта есть вложенные элементы. Чтобы удалить этот проект,
+            необходимо дополнительно подтвердить удаление всего поддерева.
+        </p>
+    {% endif %}
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.confirm_delete() }}
+            {{ form.confirm_delete.label }}
+        </p>
+
+        {% if delete_info["has_children"] %}
+            <p>
+                {{ form.delete_descendants() }}
+                {{ form.delete_descendants.label }}
+            </p>
+        {% endif %}
+
+        <p>
+            {{ form.submit() }}
+        </p>
+    </form>
+{% endblock %}

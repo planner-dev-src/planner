@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Встроить существующий проект
+{% endblock %}
+
+{% block content %}
+    <p>
+        <a href="{{ url_for('projects.project_detail', project_id=project.id) }}">
+            ← К карточке проекта
+        </a>
+    </p>
+
+    <h1>Встроить существующий проект в: {{ project.title }}</h1>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.child_project_id.label }}<br>
+            {{ form.child_project_id() }}
+        </p>
+
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
