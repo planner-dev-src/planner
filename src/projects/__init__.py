@@ -7,4 +7,4 @@ projects_bp = Blueprint(
     template_folder="templates",
 )
 
-from . import routes
+from . import routes  # noqa: E402,F401
