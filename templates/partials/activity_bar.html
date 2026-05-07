@@ -1,7 +1,65 @@
+{# templates/partials/activity_bar.html #}
 <nav class="activity-bar">
-    <a class="activity-link {% if active_section == 'goals' %}active{% endif %}" href="#">G</a>
-    <a class="activity-link {% if active_section == 'state' %}active{% endif %}" href="#">S</a>
-    <a class="activity-link {% if active_section == 'boards' %}active{% endif %}" href="{{ url_for('boards.index') }}">B</a>
-    <a class="activity-link {% if active_section == 'services' %}active{% endif %}" href="#">V</a>
-    <a class="activity-link {% if active_section == 'artifacts' %}active{% endif %}" href="#">A</a>
+  <a
+    href="{{ url_for('goals.list_goals') }}"
+    class="activity-link {{ 'active' if active_section == 'goals' else '' }}"
+    title="Цели"
+    {% if active_section == 'goals' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">🎯</span>
+  </a>
+
+  <a
+    href="{{ url_for('programs.index') if has_programs_bp else '#' }}"
+    class="activity-link {{ 'active' if active_section == 'programs' else '' }} {{ '' if has_programs_bp else 'disabled' }}"
+    title="Программы"
+    {% if active_section == 'programs' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">📚</span>
+  </a>
+
+  <a
+    href="{{ url_for('projects.projects_list') if has_projects_bp else '#' }}"
+    class="activity-link {{ 'active' if active_section == 'projects' else '' }} {{ '' if has_projects_bp else 'disabled' }}"
+    title="Проекты"
+    {% if active_section == 'projects' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">📁</span>
+  </a>
+
+  <a
+    href="{{ url_for('boards.index') }}"
+    class="activity-link {{ 'active' if active_section == 'boards' else '' }}"
+    title="Доски"
+    {% if active_section == 'boards' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">🧩</span>
+  </a>
+
+  <a
+    href="{{ url_for('monitoring.index') if has_monitoring_bp else '#' }}"
+    class="activity-link {{ 'active' if active_section == 'monitoring' else '' }} {{ '' if has_monitoring_bp else 'disabled' }}"
+    title="Мониторинг"
+    {% if active_section == 'monitoring' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">📊</span>
+  </a>
+
+  <a
+    href="{{ url_for('materials.index') if has_materials_bp else '#' }}"
+    class="activity-link {{ 'active' if active_section == 'materials' else '' }} {{ '' if has_materials_bp else 'disabled' }}"
+    title="Материалы"
+    {% if active_section == 'materials' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">📄</span>
+  </a>
+
+  <a
+    href="{{ url_for('tools.index') if has_tools_bp else '#' }}"
+    class="activity-link {{ 'active' if active_section == 'tools' else '' }} {{ '' if has_tools_bp else 'disabled' }}"
+    title="Инструменты"
+    {% if active_section == 'tools' %}aria-current="page"{% endif %}
+  >
+    <span class="activity-icon">🛠</span>
+  </a>
 </nav>

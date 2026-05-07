@@ -96,8 +96,9 @@ class Board:
     def _set_schema_version(self, conn: sqlite3.Connection, version: int) -> None:
         conn.execute(f"PRAGMA user_version = {version}")
 
-    def _init_db(self):
+    def _init_db(self) -> None:
         with self._connect() as conn:
+            # Канбан: workspaces / columns / tasks
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS workspaces (
@@ -136,9 +137,55 @@ class Board:
                 """
             )
 
+            # НОВОЕ: общие таблицы под проекты и программы
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS projects (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    description TEXT NOT NULL DEFAULT '',
+                    parent_id INTEGER NULL,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS programs (
+                    id TEXT PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    note_html TEXT NOT NULL DEFAULT '',
+                    note_raw TEXT NOT NULL DEFAULT '',
+                    goal_id TEXT NULL,
+                    owner_id TEXT NOT NULL,
+                    visibility TEXT NOT NULL DEFAULT 'private',
+                    moderation_status TEXT NOT NULL DEFAULT 'draft',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
+
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS program_attachments (
+                    id TEXT PRIMARY KEY,
+                    program_id TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    filename TEXT NOT NULL,
+                    stored_path TEXT NOT NULL,
+                    content_type TEXT NULL,
+                    uploaded_by TEXT NOT NULL,
+                    uploaded_at TEXT NOT NULL
+                )
+                """
+            )
+
             conn.commit()
 
-    def _migrate_schema(self):
+    def _migrate_schema(self) -> None:
         with self._connect() as conn:
             version = self._get_schema_version(conn)
 
@@ -241,7 +288,7 @@ class Board:
                     """
                 ).fetchall()
 
-                grouped_positions = {}
+                grouped_positions: dict[str, list[sqlite3.Row]] = {}
                 for row in rows:
                     workspace_id = row["workspace_id"] or first_workspace_id
                     if not workspace_id:
@@ -266,7 +313,7 @@ class Board:
                     """
                 ).fetchall()
 
-                workspace_has_done = {}
+                workspace_has_done: dict[str, bool] = {}
                 for row in done_candidates:
                     if row["is_done_column"]:
                         workspace_has_done[row["workspace_id"]] = True
@@ -366,6 +413,34 @@ class Board:
             created_at=row["created_at"],
         )
 
+    def _get_next_column_position(self, conn: sqlite3.Connection, workspace_id: str) -> int:
+        row = conn.execute(
+            """
+            SELECT COALESCE(MAX(position), -1) AS max_position
+            FROM columns
+            WHERE workspace_id = ?
+            """,
+            (workspace_id,),
+        ).fetchone()
+        return int(row["max_position"] or 0) + 1
+
+    def _normalize_column_positions(self, conn: sqlite3.Connection, workspace_id: str) -> None:
+        rows = conn.execute(
+            """
+            SELECT id
+            FROM columns
+            WHERE workspace_id = ?
+            ORDER BY position ASC, created_at ASC, rowid ASC
+            """,
+            (workspace_id,),
+        ).fetchall()
+
+        for index, row in enumerate(rows):
+            conn.execute(
+                "UPDATE columns SET position = ? WHERE id = ?",
+                (index, row["id"]),
+            )
+
     def _ensure_done_column(self, workspace_id: str) -> Optional[Column]:
         with self._connect() as conn:
             row = conn.execute(
@@ -423,17 +498,6 @@ class Board:
                 (column_id,),
             ).fetchone()
             return self._column_from_row(row)
-
-    def _get_next_column_position(self, conn: sqlite3.Connection, workspace_id: str) -> int:
-        row = conn.execute(
-            """
-            SELECT COALESCE(MAX(position), -1) AS max_position
-            FROM columns
-            WHERE workspace_id = ?
-            """,
-            (workspace_id,),
-        ).fetchone()
-        return int(row["max_position"] or 0) + 1
 
     def list_workspaces(self) -> list[Workspace]:
         with self._connect() as conn:
@@ -667,6 +731,8 @@ class Board:
             if int(task_count_row["cnt"] or 0) > 0:
                 return False
 
+            current_workspace_id = column_row["workspace_id"]
+
             if workspace_id:
                 cursor = conn.execute(
                     """
@@ -681,6 +747,7 @@ class Board:
                     (column_id,),
                 )
 
+            self._normalize_column_positions(conn, current_workspace_id)
             conn.commit()
             return cursor.rowcount > 0
 
@@ -781,7 +848,9 @@ class Board:
 
             conn.execute(
                 """
-                INSERT INTO tasks (id, workspace_id, column_id, title, description, priority, due_date, created_at)
+                INSERT INTO tasks (
+                    id, workspace_id, column_id, title, description, priority, due_date, created_at
+                )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (task_id, workspace_id, column_id, title, description, priority, due_date_str, created_at),
@@ -808,7 +877,7 @@ class Board:
         description = (description or "").strip()
         priority = (priority or "medium").strip()
 
-        if not title or not task_id or not column_id or not workspace_id:
+        if not title or not column_id or not workspace_id:
             return False
 
         if priority not in {"low", "medium", "high"}:
@@ -831,10 +900,10 @@ class Board:
             cursor = conn.execute(
                 """
                 UPDATE tasks
-                SET title = ?, description = ?, priority = ?, due_date = ?, column_id = ?, workspace_id = ?
+                SET title = ?, description = ?, priority = ?, due_date = ?, column_id = ?
                 WHERE id = ? AND workspace_id = ?
                 """,
-                (title, description, priority, due_date_str, column_id, workspace_id, task_id, workspace_id),
+                (title, description, priority, due_date_str, column_id, task_id, workspace_id),
             )
             conn.commit()
             return cursor.rowcount > 0
@@ -843,10 +912,7 @@ class Board:
         with self._connect() as conn:
             if workspace_id:
                 cursor = conn.execute(
-                    """
-                    DELETE FROM tasks
-                    WHERE id = ? AND workspace_id = ?
-                    """,
+                    "DELETE FROM tasks WHERE id = ? AND workspace_id = ?",
                     (task_id, workspace_id),
                 )
             else:
@@ -854,6 +920,25 @@ class Board:
                     "DELETE FROM tasks WHERE id = ?",
                     (task_id,),
                 )
+            conn.commit()
+            return cursor.rowcount > 0
 
+    def move_task_to_done(self, task_id: str, workspace_id: str) -> bool:
+        if not workspace_id:
+            return False
+
+        done_column = self._ensure_done_column(workspace_id)
+        if done_column is None:
+            return False
+
+        with self._connect() as conn:
+            cursor = conn.execute(
+                """
+                UPDATE tasks
+                SET column_id = ?
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (done_column.id, task_id, workspace_id),
+            )
             conn.commit()
             return cursor.rowcount > 0

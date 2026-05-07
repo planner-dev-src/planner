@@ -46,7 +46,7 @@ board = Board()
 
 def _finish(result):
     flash(result.message, result.category)
-    params = {}
+    params: dict[str, str] = {}
     if result.edit_workspace_id:
         params["edit_workspace"] = result.edit_workspace_id
     if result.edit_column_id:
@@ -107,7 +107,7 @@ def _render_index_with_context(
     context["add_column_open"] = add_column_open
     context["add_task_open_column_id"] = add_task_open_column_id
 
-    # для подсветки буквы B в activity bar
+    # для подсветки раздела "Доски" в activity bar
     context["active_section"] = "boards"
 
     return render_template("boards/index.html", **context)
@@ -133,7 +133,7 @@ def index():
     context["add_column_open"] = add_column_open
     context["add_task_open_column_id"] = add_task_open_column_id
 
-    # для подсветки буквы B в activity bar
+    # для подсветки раздела "Доски" в activity bar
     context["active_section"] = "boards"
 
     return render_template("boards/index.html", **context)
