@@ -1,0 +1,993 @@
+{% extends "base.html" %}
+
+{% macro render_errors(field) -%}
+  {% if field.errors %}
+    <div class="field-errors" role="alert">
+      {% for error in field.errors %}
+        <div class="field-error">{{ error }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{%- endmacro %}
+
+{% block title %}Planner{% endblock %}
+
+{% block head %}
+<style>
+  :root {
+    --bg: #f5f5f3;
+    --surface: #ffffff;
+    --surface-soft: #f7f7f5;
+    --surface-muted: #f1f2ef;
+    --surface-active: #eceeea;
+
+    --border: #e3e4e8;
+    --border-strong: #d4d7dd;
+
+    --text: #22252b;
+    --muted: #6e7480;
+
+    --primary: #557160;
+    --primary-hover: #476152;
+
+    --danger: #b84c4c;
+    --danger-hover: #a13d3d;
+
+    --success: #557160;
+    --success-hover: #476152;
+
+    --warning: #8b6f3d;
+    --warning-hover: #735b31;
+
+    --disabled-bg: #e7e8ea;
+    --disabled-text: #7a808b;
+
+    --error: #b84c4c;
+    --error-bg: #f9efef;
+    --error-border: #e6caca;
+
+    --shadow-sm: 0 2px 6px rgba(19, 24, 32, 0.05);
+    --shadow-md: 0 8px 24px rgba(19, 24, 32, 0.06);
+
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .page {
+    max-width: none;
+    margin: 0;
+    padding: 18px 20px 20px;
+  }
+
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .title-group h1 {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.1;
+    font-weight: 700;
+  }
+
+  .title-group p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .topbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .field {
+    margin: 0;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--text);
+    background: #fff;
+  }
+
+  textarea {
+    min-height: 88px;
+    resize: vertical;
+  }
+
+  .field-errors {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .field-error {
+    border: 1px solid var(--error-border);
+    border-radius: 10px;
+    background: var(--error-bg);
+    color: var(--error);
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .field input.is-invalid,
+  .field textarea.is-invalid,
+  .field select.is-invalid,
+  input.is-invalid,
+  textarea.is-invalid,
+  select.is-invalid {
+    border-color: var(--error);
+    background: #fffdfd;
+    box-shadow: 0 0 0 3px rgba(184, 76, 76, 0.10);
+  }
+
+  .btn,
+  button,
+  input[type="submit"] {
+    appearance: none;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 15px;
+    line-height: 1.2;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: #fff;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .btn:hover,
+  button:hover,
+  input[type="submit"]:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-soft);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+
+  .btn-danger:hover {
+    background: var(--danger-hover);
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: #fff;
+  }
+
+  .btn-success:hover {
+    background: var(--success-hover);
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: #fff;
+  }
+
+  .btn-warning:hover {
+    background: var(--warning-hover);
+  }
+
+  .btn-small {
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 9px;
+  }
+
+  .btn-disabled {
+    background: var(--disabled-bg);
+    color: var(--disabled-text);
+    border-color: var(--border-strong);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .inline-form {
+    margin: 0;
+  }
+
+  .workspace-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 0 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .workspace-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 13px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: 14px;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .workspace-link:hover {
+    background: var(--surface-soft);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .workspace-link.active {
+    background: var(--surface-active);
+    color: var(--text);
+    border-color: var(--border-strong);
+    font-weight: 700;
+  }
+
+  .workspace-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -2px 0 14px;
+    align-items: flex-start;
+  }
+
+  .flash-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 0 14px;
+  }
+
+  .flash {
+    border-radius: 12px;
+    padding: 11px 13px;
+    border: 1px solid transparent;
+    font-size: 15px;
+  }
+
+  .flash.success {
+    background: #edf4ee;
+    border-color: #cfdccf;
+    color: #35503c;
+  }
+
+  .flash.error {
+    background: #f7eeee;
+    border-color: #e7cfcf;
+    color: #7b3f3f;
+  }
+
+  .flash.info {
+    background: #eef2f5;
+    border-color: #d7dfe6;
+    color: #41505d;
+  }
+
+  .board-shell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    padding: 16px;
+  }
+
+  .board-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .board-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .board-title-wrap h2 {
+    margin: 0;
+    font-size: 21px;
+    line-height: 1.2;
+  }
+
+  .board-title-wrap p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .board-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .board-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+  }
+
+  .board {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(300px, 300px);
+    gap: 14px;
+    align-items: start;
+    min-width: max-content;
+  }
+
+  .column {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    min-width: 300px;
+    max-width: 300px;
+  }
+
+  .column-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .column-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .column-title-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .column-title {
+    margin: 0;
+    font-size: 17px;
+    word-break: break-word;
+  }
+
+  .column-meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .column-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .system-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--surface-muted);
+    color: #49515b;
+    white-space: nowrap;
+  }
+
+  .system-hint {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .compact-panel {
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.78);
+    overflow: hidden;
+    min-width: 210px;
+  }
+
+  .compact-panel[open] {
+    background: #fff;
+  }
+
+  .compact-panel summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .compact-panel summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .compact-panel summary::after {
+    content: "+";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: #4b5563;
+    font-size: 16px;
+    font-weight: 700;
+    flex: 0 0 auto;
+  }
+
+  .compact-panel[open] summary::after {
+    content: "–";
+  }
+
+  .compact-panel summary:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .compact-panel summary:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+  }
+
+  .compact-panel-body {
+    padding: 0 12px 12px;
+  }
+
+  .compact-form {
+    padding: 12px;
+    background: #fff;
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+  }
+
+  .task-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .task-form-grid .full {
+    grid-column: 1 / -1;
+  }
+
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .task-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(19, 24, 32, 0.05);
+  }
+
+  .task-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .task-description {
+    margin: 0 0 10px;
+    color: #39424d;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .pill.priority-low {
+    background: #eef4ef;
+    color: #406048;
+  }
+
+  .pill.priority-medium {
+    background: #f4efe7;
+    color: #7a6339;
+  }
+
+  .pill.priority-high {
+    background: #f6ebeb;
+    color: #8c4747;
+  }
+
+  .pill.date {
+    background: #edf1f4;
+    color: #485866;
+  }
+
+  .task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .task-edit-panel {
+    margin-top: 10px;
+    min-width: 100%;
+  }
+
+  .empty-box {
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px dashed var(--border-strong);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .empty-workspaces {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    color: var(--muted);
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  @media (max-width: 900px) {
+    .page {
+      padding: 14px;
+    }
+
+    .topbar {
+      align-items: stretch;
+    }
+
+    .topbar-actions,
+    .board-toolbar,
+    .workspace-actions-row,
+    .column-actions,
+    .task-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .compact-panel {
+      min-width: 100%;
+    }
+
+    .task-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <header class="topbar">
+    <div class="title-group">
+      <h1>Planner</h1>
+      <p>Компактная канбан-доска по направлениям.</p>
+    </div>
+
+    <div class="topbar-actions">
+      <details class="compact-panel" {% if add_workspace_open or not workspaces %}open{% endif %}>
+        <summary>+ Направление</summary>
+        <div class="compact-panel-body">
+          <form class="compact-form" action="{{ url_for('boards.add_workspace') }}" method="post">
+            {{ add_workspace_form.hidden_tag() }}
+            <div class="field" style="margin-bottom: 12px;">
+              {{ add_workspace_form.name.label }}
+              {{ add_workspace_form.name(
+                placeholder="Новое направление",
+                class_='is-invalid' if add_workspace_form.name.errors else ''
+              ) }}
+              {{ render_errors(add_workspace_form.name) }}
+            </div>
+            {{ add_workspace_form.submit(class_="btn btn-small") }}
+          </form>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  {% if workspaces %}
+    <nav class="workspace-strip" aria-label="Направления">
+      {% for workspace in workspaces %}
+        <a
+          class="workspace-link {% if active_workspace and workspace.id == active_workspace.id %}active{% endif %}"
+          href="{{ url_for('boards.index', workspace_id=workspace.id) }}"
+        >
+          {{ workspace.name }}
+        </a>
+      {% endfor %}
+    </nav>
+  {% endif %}
+
+  {% if active_workspace %}
+    {% set delete_state = workspace_delete_state[active_workspace.id] %}
+
+    <div class="workspace-actions-row">
+      <details class="compact-panel" {% if edit_workspace_id and edit_workspace_id == active_workspace.id %}open{% endif %}>
+        <summary>Изменить направление</summary>
+        <div class="compact-panel-body">
+          <form class="compact-form" action="{{ url_for('boards.edit_workspace', workspace_id=active_workspace.id) }}" method="post">
+            {{ edit_workspace_forms[active_workspace.id].hidden_tag() }}
+            <div class="field" style="margin-bottom: 12px;">
+              {{ edit_workspace_forms[active_workspace.id].name.label }}
+              {{ edit_workspace_forms[active_workspace.id].name(
+                class_='is-invalid' if edit_workspace_forms[active_workspace.id].name.errors else ''
+              ) }}
+              {{ render_errors(edit_workspace_forms[active_workspace.id].name) }}
+            </div>
+            <div class="task-actions">
+              {{ edit_workspace_forms[active_workspace.id].submit(class_="btn btn-small") }}
+              <a class="btn btn-secondary btn-small" href="{{ url_for('boards.index', workspace_id=active_workspace.id) }}">Отмена</a>
+            </div>
+          </form>
+        </div>
+      </details>
+
+      {% if delete_state.can_delete %}
+        <form class="inline-form" action="{{ url_for('boards.delete_workspace', workspace_id=active_workspace.id) }}" method="post">
+          {{ delete_workspace_forms[active_workspace.id].hidden_tag() }}
+          {{ delete_workspace_forms[active_workspace.id].workspace_id(value=active_workspace.id) }}
+          <button type="submit" class="btn btn-danger btn-small">Удалить направление</button>
+        </form>
+      {% else %}
+        <span class="btn btn-small btn-disabled" aria-disabled="true">Удаление направления недоступно</span>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if active_workspace %}
+    <section class="board-shell">
+      <div class="board-header">
+        <div class="board-title-wrap">
+          <h2>{{ active_workspace.name }}</h2>
+          <p>Горизонтальная прокрутка включается автоматически, если колонок много.</p>
+        </div>
+
+        <div class="board-toolbar">
+          <details class="compact-panel" {% if add_column_open %}open{% endif %}>
+            <summary>+ Колонка</summary>
+            <div class="compact-panel-body">
+              <form class="compact-form" action="{{ url_for('boards.add_column') }}" method="post">
+                {{ add_column_form.hidden_tag() }}
+                {{ add_column_form.workspace_id(value=active_workspace.id) }}
+                <div class="field" style="margin-bottom: 12px;">
+                  {{ add_column_form.name.label }}
+                  {{ add_column_form.name(
+                    placeholder="Новая колонка",
+                    class_='is-invalid' if add_column_form.name.errors else ''
+                  ) }}
+                  {{ render_errors(add_column_form.name) }}
+                </div>
+                {{ add_column_form.submit(class_="btn btn-small") }}
+              </form>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="board-scroll">
+        <section class="board">
+          {% for column in columns %}
+            {% set column_loop = loop %}
+            <article class="column">
+              <div class="column-header">
+                <div class="column-title-row">
+                  <div class="column-title-wrap">
+                    <h3 class="column-title">{{ column.name }}</h3>
+                    {% if column.is_done_column %}
+                      <span class="system-badge">Системная</span>
+                    {% endif %}
+                  </div>
+                  <div class="column-meta">
+                    {{ tasks_by_column[column.id]|length }} шт.
+                  </div>
+                </div>
+
+                <div class="column-actions">
+                  {% if not column.is_done_column %}
+                    <details class="compact-panel" {% if edit_column_id == column.id %}open{% endif %}>
+                      <summary>Изменить колонку</summary>
+                      <div class="compact-panel-body">
+                        <form class="compact-form" action="{{ url_for('boards.edit_column', column_id=column.id) }}" method="post">
+                          {{ edit_column_forms[column.id].hidden_tag() }}
+                          {{ edit_column_forms[column.id].workspace_id(value=active_workspace.id) }}
+                          <div class="field" style="margin-bottom: 12px;">
+                            {{ edit_column_forms[column.id].name.label }}
+                            {{ edit_column_forms[column.id].name(
+                              class_='is-invalid' if edit_column_forms[column.id].name.errors else ''
+                            ) }}
+                            {{ render_errors(edit_column_forms[column.id].name) }}
+                          </div>
+                          <div class="task-actions">
+                            {{ edit_column_forms[column.id].submit(class_="btn btn-small") }}
+                            <a class="btn btn-secondary btn-small" href="{{ url_for('boards.index', workspace_id=active_workspace.id) }}">Отмена</a>
+                          </div>
+                        </form>
+                      </div>
+                    </details>
+
+                    <form class="inline-form" action="{{ url_for('boards.delete_column', column_id=column.id) }}" method="post">
+                      {{ delete_column_forms[column.id].hidden_tag() }}
+                      {{ delete_column_forms[column.id].workspace_id(value=active_workspace.id) }}
+                      <button type="submit" class="btn btn-danger btn-small">Удалить</button>
+                    </form>
+                  {% endif %}
+                </div>
+
+                {% if column.is_done_column %}
+                  <div class="system-hint">
+                    Эта колонка создаётся автоматически и отдельно не удаляется.
+                  </div>
+                {% endif %}
+              </div>
+
+              {% if not column.is_done_column %}
+                <details class="compact-panel" {% if add_task_open_column_id and add_task_open_column_id == column.id %}open{% endif %}>
+                  <summary>+ Задача</summary>
+                  <div class="compact-panel-body">
+                    <form class="compact-form" action="{{ url_for('boards.add_task') }}" method="post">
+                      {{ add_task_forms[column.id].hidden_tag() }}
+                      {{ add_task_forms[column.id].workspace_id(value=active_workspace.id) }}
+                      {{ add_task_forms[column.id].column_id(value=column.id) }}
+
+                      <div class="field" style="margin-bottom: 12px;">
+                        {{ add_task_forms[column.id].title.label }}
+                        {{ add_task_forms[column.id].title(
+                          placeholder="Название задачи",
+                          class_='is-invalid' if add_task_forms[column.id].title.errors else ''
+                        ) }}
+                        {{ render_errors(add_task_forms[column.id].title) }}
+                      </div>
+
+                      <div class="field" style="margin-bottom: 12px;">
+                        {{ add_task_forms[column.id].description.label }}
+                        {{ add_task_forms[column.id].description(
+                          placeholder="Описание",
+                          class_='is-invalid' if add_task_forms[column.id].description.errors else ''
+                        ) }}
+                        {{ render_errors(add_task_forms[column.id].description) }}
+                      </div>
+
+                      <div class="task-form-grid" style="margin-bottom: 12px;">
+                        <div class="field">
+                          {{ add_task_forms[column.id].priority.label }}
+                          {{ add_task_forms[column.id].priority(
+                            class_='is-invalid' if add_task_forms[column.id].priority.errors else ''
+                          ) }}
+                          {{ render_errors(add_task_forms[column.id].priority) }}
+                        </div>
+                        <div class="field">
+                          {{ add_task_forms[column.id].due_date.label }}
+                          {{ add_task_forms[column.id].due_date(
+                            class_='is-invalid' if add_task_forms[column.id].due_date.errors else ''
+                          ) }}
+                          {{ render_errors(add_task_forms[column.id].due_date) }}
+                        </div>
+                      </div>
+
+                      {{ add_task_forms[column.id].submit(class_="btn btn-small") }}
+                    </form>
+                  </div>
+                </details>
+              {% endif %}
+
+              <div class="task-list">
+                {% for task in tasks_by_column[column.id] %}
+                  <div class="task-card">
+                    <h4 class="task-title">{{ task.title }}</h4>
+
+                    {% if task.description %}
+                      <p class="task-description">{{ task.description }}</p>
+                    {% endif %}
+
+                    <div class="task-meta">
+                      <span class="pill priority-{{ task.priority }}">{{ task.priority_label }}</span>
+                      {% if task.due_date %}
+                        <span class="pill date">Срок: {{ task.due_date }}</span>
+                      {% endif %}
+                    </div>
+
+                    <div class="task-actions">
+                      {% if not column_loop.first %}
+                        <form class="inline-form" action="{{ url_for('boards.move_task_left', task_id=task.id) }}" method="post">
+                          {{ move_left_forms[task.id].hidden_tag() }}
+                          {{ move_left_forms[task.id].workspace_id(value=active_workspace.id) }}
+                          <button type="submit" class="btn btn-secondary btn-small">←</button>
+                        </form>
+                      {% endif %}
+
+                      {% if not column_loop.last %}
+                        <form class="inline-form" action="{{ url_for('boards.move_task_right', task_id=task.id) }}" method="post">
+                          {{ move_right_forms[task.id].hidden_tag() }}
+                          {{ move_right_forms[task.id].workspace_id(value=active_workspace.id) }}
+                          <button type="submit" class="btn btn-secondary btn-small">→</button>
+                        </form>
+                      {% endif %}
+
+                      {% if not column.is_done_column %}
+                        <form class="inline-form" action="{{ url_for('boards.mark_task_done', task_id=task.id) }}" method="post">
+                          {{ done_forms[task.id].hidden_tag() }}
+                          {{ done_forms[task.id].workspace_id(value=active_workspace.id) }}
+                          <button type="submit" class="btn btn-success btn-small">Готово</button>
+                        </form>
+                      {% endif %}
+
+                      <form class="inline-form" action="{{ url_for('boards.delete_task', task_id=task.id) }}" method="post">
+                        {{ delete_task_forms[task.id].hidden_tag() }}
+                        {{ delete_task_forms[task.id].workspace_id(value=active_workspace.id) }}
+                        <button type="submit" class="btn btn-danger btn-small">Удалить</button>
+                      </form>
+                    </div>
+
+                    <details class="compact-panel task-edit-panel" {% if edit_task_id == task.id %}open{% endif %}>
+                      <summary>Изменить задачу</summary>
+                      <div class="compact-panel-body">
+                        <form class="compact-form" action="{{ url_for('boards.edit_task', task_id=task.id) }}" method="post">
+                          {{ edit_task_forms[task.id].hidden_tag() }}
+                          {{ edit_task_forms[task.id].workspace_id(value=active_workspace.id) }}
+
+                          <div class="field" style="margin-bottom: 12px;">
+                            {{ edit_task_forms[task.id].title.label }}
+                            {{ edit_task_forms[task.id].title(
+                              class_='is-invalid' if edit_task_forms[task.id].title.errors else ''
+                            ) }}
+                            {{ render_errors(edit_task_forms[task.id].title) }}
+                          </div>
+
+                          <div class="field" style="margin-bottom: 12px;">
+                            {{ edit_task_forms[task.id].description.label }}
+                            {{ edit_task_forms[task.id].description(
+                              class_='is-invalid' if edit_task_forms[task.id].description.errors else ''
+                            ) }}
+                            {{ render_errors(edit_task_forms[task.id].description) }}
+                          </div>
+
+                          <div class="task-form-grid" style="margin-bottom: 12px;">
+                            <div class="field">
+                              {{ edit_task_forms[task.id].priority.label }}
+                              {{ edit_task_forms[task.id].priority(
+                                class_='is-invalid' if edit_task_forms[task.id].priority.errors else ''
+                              ) }}
+                              {{ render_errors(edit_task_forms[task.id].priority) }}
+                            </div>
+                            <div class="field">
+                              {{ edit_task_forms[task.id].due_date.label }}
+                              {{ edit_task_forms[task.id].due_date(
+                                class_='is-invalid' if edit_task_forms[task.id].due_date.errors else ''
+                              ) }}
+                              {{ render_errors(edit_task_forms[task.id].due_date) }}
+                            </div>
+                            <div class="field full">
+                              {{ edit_task_forms[task.id].column_id.label }}
+                              {{ edit_task_forms[task.id].column_id(
+                                class_='is-invalid' if edit_task_forms[task.id].column_id.errors else ''
+                              ) }}
+                              {{ render_errors(edit_task_forms[task.id].column_id) }}
+                            </div>
+                          </div>
+
+                          <div class="task-actions">
+                            {{ edit_task_forms[task.id].submit(class_="btn btn-small") }}
+                            <a class="btn btn-secondary btn-small" href="{{ url_for('boards.index', workspace_id=active_workspace.id) }}">Отмена</a>
+                          </div>
+                        </form>
+                      </div>
+                    </details>
+                  </div>
+                {% else %}
+                  <div class="empty-box">
+                    В этой колонке пока нет задач.
+                  </div>
+                {% endfor %}
+              </div>
+            </article>
+          {% endfor %}
+        </section>
+      </div>
+    </section>
+  {% else %}
+    <section class="empty-workspaces">
+      Направлений пока нет. Создай первое направление сверху, и после этого появится доска.
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

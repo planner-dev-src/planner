@@ -1,37 +1,58 @@
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <title>Create project</title>
-</head>
-<body>
-    <h1>Create project</h1>
+{% extends "base.html" %}
 
-    <form method="post">
-        {{ form.hidden_tag() }}
+{% block title %}Создание проекта{% endblock %}
 
-        <div>
-            {{ form.title.label }}
-        </div>
-        <div>
-            {{ form.title(size=60) }}
-        </div>
+{% block content %}
+<div class="page">
+  <header class="topbar">
+    <div class="title-group">
+      <h1>Создание проекта</h1>
+      <p>Добавь новый проект в общую структуру и задай ему базовые параметры.</p>
+    </div>
 
+    <div class="topbar-actions">
+      <a href="{{ url_for('projects.projects_list') }}" class="btn btn-secondary">
+        К списку проектов
+      </a>
+    </div>
+  </header>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Новый проект</h2>
+        <p>Заполни обязательные поля. Остальное можно будет уточнить позже.</p>
+      </div>
+    </div>
+
+    <form method="post" class="compact-form">
+      {{ form.hidden_tag() }}
+
+      <div class="field" style="margin-bottom: 12px;">
+        {{ form.title.label }}
+        {{ form.title(
+          class="form-control",
+          placeholder="Например: MVP платформы"
+        ) }}
         {% if form.title.errors %}
-            <ul>
-                {% for error in form.title.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
+          <div class="flash-message error" style="margin-top: 8px;">
+            {% for error in form.title.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
         {% endif %}
+      </div>
 
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
-
-    <p>
-        <a href="{{ url_for('projects.list_projects') }}">Назад к списку</a>
-    </p>
-</body>
-</html>
+      {% if form.description is defined %}
+        <div class="field" style="margin-bottom: 12px;">
+          {{ form.description.label }}
+          {{ form.description(
+            class="form-control",
+            rows="4",
+            placeholder="Кратко опиши цель и содержание проекта."
+          ) }}
+          {% if form.description.errors %}
+            <div class="flash-message error" style="margin-top: 8px;">
+              {% for error in form.description.errors %}
+                <div>{{ error }}</div>
+              {% 

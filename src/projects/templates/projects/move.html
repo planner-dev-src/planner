@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Перенос проекта{% endblock %}
+
+{% block content %}
+<div class="page">
+  <header class="topbar">
+    <div class="title-group">
+      <h1>Перенос проекта</h1>
+      <p>Измени положение проекта в иерархии и задай для него нового родителя.</p>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-secondary">
+        Карточка проекта
+      </a>
+      <a href="{{ url_for('projects.project_structure', project_id=project.id) }}" class="btn btn-secondary">
+        Структура
+      </a>
+    </div>
+  </header>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Текущий проект</h2>
+        <p>Проект, для которого изменяется родительский элемент.</p>
+      </div>
+    </div>
+
+    <div class="task-card" style="margin-top: 16px;">
+      <h3 class="task-title">{{ project.title }}</h3>
+      {% if project.description %}
+        <p class="task-description">{{ project.description }}</p>
+      {% else %}
+        <p class="task-description">Описание проекта пока не добавлено.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="board-shell">
+    <div class="board-header">
+      <div class="board-title-wrap">
+        <h2>Новый родитель</h2>
+        <p>Выбери, куда следует перенести проект в структуре.</p>
+      </div>
+    </div>
+
+    <form method="post" class="compact-form" style="margin-top: 16px;">
+      {{ form.hidden_tag() }}
+
+      <div class="field" style="margin-bottom: 12px;">
+        {{ form.new_parent_id.label }}
+        {{ form.new_parent_id(class="form-control") }}
+        {% if form.new_parent_id.errors %}
+          <div class="flash-message error" style="margin-top: 8px;">
+            {% for error in form.new_parent_id.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="task-actions">
+        <button type="submit" class="btn">Перенести проект</button>
+        <a
+          href="{{ url_for('projects.project_structure', project_id=project.id) }}"
+          class="btn btn-secondary"
+        >
+          Отмена
+        </a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

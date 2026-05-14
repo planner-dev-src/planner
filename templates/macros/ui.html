@@ -1,0 +1,78 @@
+{% macro top_links(links) -%}
+    <div class="top-links">
+        {% for item in links %}
+            <a href="{{ item.href }}">{{ item.label }}</a>{% if not loop.last %} | {% endif %}
+        {% endfor %}
+    </div>
+{%- endmacro %}
+
+
+{% macro info_banner(title, paragraphs=None, actions=None) -%}
+    <div class="info-banner">
+        {% if title %}
+            <h2>{{ title }}</h2>
+        {% endif %}
+
+        {% if paragraphs %}
+            {% for paragraph in paragraphs %}
+                <p>{{ paragraph }}</p>
+            {% endfor %}
+        {% endif %}
+
+        {% if actions %}
+            <div class="quick-actions">
+                {% for action in actions %}
+                    <a href="{{ action.href }}">{{ action.label }}</a>{% if not loop.last %} | {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+
+{% macro render_project_tree(node, is_root_copy=False, is_nested=False) -%}
+    <ul class="tree-list{% if is_nested %} tree-list-children{% endif %}">
+        <li class="tree-list-item">
+            <div class="tree-node{% if is_root_copy %} is-new-root{% endif %}">
+                <div class="tree-row">
+                    <a
+                        class="tree-title"
+                        href="{{ url_for('projects.project_detail', project_id=node['id']) }}"
+                    >
+                        {{ node["title"] }}
+                    </a>
+
+                    {% if is_root_copy %}
+                        <span class="badge">Новая копия</span>
+                    {% endif %}
+
+                    <span class="muted">
+                        ID: {{ node["id"] }}, статус: {{ node["status"] }}
+                    </span>
+                </div>
+
+                <div class="tree-actions">
+                    <a href="{{ url_for('projects.project_structure', project_id=node['id']) }}">
+                        Открыть структуру
+                    </a>
+                    |
+                    <a href="{{ url_for('projects.project_detail', project_id=node['id']) }}">
+                        Открыть карточку
+                    </a>
+                </div>
+
+                {% if node["description"] %}
+                    <div class="tree-description">
+                        {{ node["description"] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if node.get("children") %}
+                {% for child in node["children"] %}
+                    {{ render_project_tree(child, is_root_copy=False, is_nested=True) }}
+                {% endfor %}
+            {% endif %}
+        </li>
+    </ul>
+{%- endmacro %}

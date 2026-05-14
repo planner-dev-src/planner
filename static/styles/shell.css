@@ -17,7 +17,7 @@
     --sidebar-active-border: rgba(255, 255, 255, 0.08);
     --sidebar-focus-ring: rgba(255, 255, 255, 0.14);
 
-    --activity-width: 64px;
+    --activity-width: 72px;
 }
 
 *,
@@ -74,8 +74,8 @@ body {
 }
 
 .activity-link {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
     border: 1px solid transparent;
     background: transparent;
@@ -84,7 +84,7 @@ body {
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 26px;
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.02em;

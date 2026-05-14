@@ -5,6 +5,8 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
+    font-size: 16px; /* Добавил - было без явного размера */
+    line-height: 1.5; /* Добавил для лучшей читаемости */
     background: #f4f5f7;
     color: #1f2328;
 }

@@ -1,24 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Проекты{% endblock %}
+{% block title %}Архив проектов{% endblock %}
 
 {% block content %}
 <div class="page">
   <header class="topbar">
     <div class="title-group">
-      <h1>Проекты</h1>
-      <p>Корневые активные проекты, с которыми можно продолжать работу и строить структуру.</p>
+      <h1>Архив проектов</h1>
+      <p>Здесь находятся архивные корневые проекты, которые можно просмотреть, восстановить или удалить.</p>
     </div>
 
     <div class="topbar-actions">
-      <a href="{{ url_for('projects.project_create') }}" class="btn">
-        Создать проект
-      </a>
-      <a href="{{ url_for('projects.project_clone') }}" class="btn btn-secondary">
-        Клонировать дерево
-      </a>
-      <a href="{{ url_for('projects.projects_archive') }}" class="btn btn-secondary">
-        Архив
+      <a href="{{ url_for('projects.projects_list') }}" class="btn btn-secondary">
+        Активные проекты
       </a>
     </div>
   </header>
@@ -26,8 +20,8 @@
   <section class="board-shell">
     <div class="board-header">
       <div class="board-title-wrap">
-        <h2>Активные корневые проекты</h2>
-        <p>Здесь отображаются только верхнеуровневые активные проекты.</p>
+        <h2>Архивные корневые проекты</h2>
+        <p>Список корневых проектов, переведённых в архив.</p>
       </div>
     </div>
 
@@ -49,6 +43,7 @@
 
             <div class="task-meta" style="margin-top: 12px;">
               <span class="badge">ID: {{ project.id }}</span>
+              <span class="badge">Архив</span>
               {% if project.program_id %}
                 <span class="badge">Программа: {{ project.program_id }}</span>
               {% endif %}
@@ -61,17 +56,21 @@
               >
                 Открыть
               </a>
+
+              <form
+                method="post"
+                action="{{ url_for('projects.project_restore', project_id=project.id) }}"
+                class="inline-form"
+              >
+                {{ csrf_token() if csrf_token is defined }}
+                <button type="submit" class="btn btn-small">Восстановить</button>
+              </form>
+
               <a
-                href="{{ url_for('projects.project_structure', project_id=project.id) }}"
+                href="{{ url_for('projects.project_delete', project_id=project.id) }}"
                 class="btn btn-secondary btn-small"
               >
-                Структура
-              </a>
-              <a
-                href="{{ url_for('projects.project_child_create', project_id=project.id) }}"
-                class="btn btn-secondary btn-small"
-              >
-                Дочерний проект
+                Удалить
               </a>
             </div>
           </article>
@@ -79,7 +78,7 @@
       </div>
     {% else %}
       <div class="empty-box" style="margin-top: 16px;">
-        Активных корневых проектов пока нет.
+        В архиве пока нет корневых проектов.
       </div>
     {% endif %}
   </section>

@@ -1,7 +1,7 @@
 {# templates/partials/activity_bar.html #}
 <nav class="activity-bar">
   <a
-    href="{{ url_for('goals.list_goals') }}"
+    href="{{ url_for('goals.goals_list') }}"
     class="activity-link {{ 'active' if active_section == 'goals' else '' }}"
     title="Цели"
     {% if active_section == 'goals' %}aria-current="page"{% endif %}
