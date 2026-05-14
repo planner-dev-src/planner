@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Удаление цели — {{ goal.title }}{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/goals.css') }}">
+{% endblock %}
+
+{% block page_top %}{% endblock %}
+
+{% block content %}
+<div class="goals-page narrow">
+    <div class="goals-topbar">
+        <div>
+            <h1 class="goals-title">Удаление цели</h1>
+            <p class="goals-subtitle">
+                Подтверди удаление цели и проверь, что оно действительно нужно.
+            </p>
+        </div>
+
+        <div class="goals-actions">
+            <a class="goals-button" href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                К карточке цели
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goals_archive', workspace_id=workspace_id) }}">
+                К архиву
+            </a>
+        </div>
+    </div>
+
+    <div class="goals-card">
+        <div class="goals-section">
+            <h2 class="goal-name">{{ goal.title }}</h2>
+
+            <div class="goal-meta">
+                {% if goal.status %}
+                    <span>
+                        Статус:
+                        {% if goal.status == "archived" %}
+                            в архиве
+                        {% elif goal.status == "active" %}
+                            активная
+                        {% elif goal.status == "planned" %}
+                            запланирована
+                        {% elif goal.status == "in_progress" %}
+                            в работе
+                        {% elif goal.status == "done" %}
+                            выполнена
+                        {% elif goal.status == "cancelled" %}
+                            отменена
+                        {% else %}
+                            {{ goal.status }}
+                        {% endif %}
+                    </span>
+                {% endif %}
+
+                {% if goal.priority %}
+                    <span>
+                        Приоритет:
+                        {% if goal.priority == "low" %}
+                            низкий
+                        {% elif goal.priority == "medium" %}
+                            средний
+                        {% elif goal.priority == "high" %}
+                            высокий
+                        {% else %}
+                            {{ goal.priority }}
+                        {% endif %}
+                    </span>
+                {% endif %}
+
+                {% if goal.parent_id %}
+                    <span>Есть родительская цель</span>
+                {% else %}
+                    <span>Корневая цель</span>
+                {% endif %}
+            </div>
+
+            {% if goal.description %}
+                <p class="goal-description">{{ goal.description }}</p>
+            {% else %}
+                <p class="goal-description goal-muted">Описание пока не добавлено.</p>
+            {% endif %}
+        </div>
+
+        <div class="goals-section">
+            <div class="warning-box">
+                <h3 class="warning-title">Это действие нельзя быстро отменить</h3>
+                <p class="warning-text">
+                    Если удалить цель, она исчезнет из архива и из рабочего списка. Перед подтверждением проверь, что цель действительно больше не нужна.
+                </p>
+
+                {% if delete_info.has_children %}
+                    <p class="warning-text">
+                        У цели есть вложенные элементы. Для удаления нужно отдельно подтвердить удаление всех дочерних элементов.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="goals-section">
+            {% if form.errors %}
+                <div class="form-errors-summary">
+                    <p><strong>Форма не прошла проверку.</strong></p>
+                    <ul>
+                        {% for field_name, errors in form.errors.items() %}
+                            {% for error in errors %}
+                                <li>{{ field_name }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post" action="" class="confirm-form">
+                {{ form.hidden_tag() }}
+
+                <label class="confirm-check">
+                    {{ form.confirm_delete() }}
+                    <span>{{ form.confirm_delete.label.text }}</span>
+                </label>
+                {% if form.confirm_delete.errors %}
+                    {% for error in form.confirm_delete.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if delete_info.has_children %}
+                    <label class="confirm-check">
+                        {{ form.delete_descendants() }}
+                        <span>{{ form.delete_descendants.label.text }}</span>
+                    </label>
+                    {% if form.delete_descendants.errors %}
+                        {% for error in form.delete_descendants.errors %}
+                            <div class="field-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endif %}
+
+                <div class="confirm-actions">
+                    <a class="goals-button" href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                        Отмена
+                    </a>
+                    <button type="submit" class="goals-button danger">
+                        Удалить цель
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

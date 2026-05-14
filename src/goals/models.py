@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from src.planner.extensions import db
+from src.extensions import db
 
 
 def utcnow() -> datetime:

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Структура цели — {{ goal.title }}{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/goals.css') }}">
+{% endblock %}
+
+{% block page_top %}{% endblock %}
+
+{% block content %}
+<div class="goals-page">
+    <div class="goals-backlinks">
+        <a href="{{ url_for('goals.goals_list', workspace_id=workspace_id) }}">К активным целям</a>
+        |
+        <a href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">К карточке цели</a>
+    </div>
+
+    <div class="goals-topbar">
+        <div>
+            <h1 class="goals-title">Структура цели</h1>
+            <p class="goals-subtitle">{{ goal.title }}</p>
+        </div>
+
+        <div class="goals-actions">
+            <a class="goals-button primary" href="{{ url_for('goals.goal_create', workspace_id=workspace_id, parent_id=goal.id) }}">
+                Добавить дочернюю
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goal_attach_existing', goal_id=goal.id, workspace_id=workspace_id) }}">
+                Присоединить существующую
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goal_move', goal_id=goal.id, workspace_id=workspace_id) }}">
+                Переместить
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goal_clone', source_goal_id=goal.id, workspace_id=workspace_id) }}">
+                Клонировать
+            </a>
+        </div>
+    </div>
+
+    {% if is_cloned_view %}
+        <div class="goals-card">
+            <div class="goals-section">
+                <p class="goals-subtitle">
+                    Поддерево создано как копия
+                    {% if source_goal_id and source_goal_title %}
+                        <a href="{{ url_for('goals.goal_detail', goal_id=source_goal_id, workspace_id=workspace_id) }}">
+                            {{ source_goal_title }}
+                        </a>
+                    {% elif source_goal_title %}
+                        {{ source_goal_title }}
+                    {% else %}
+                        выбранной цели
+                    {% endif %}
+                    .
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="goals-card">
+        <div class="goals-section">
+            <h2 class="goal-name">{{ goal.title }}</h2>
+
+            <div class="goal-meta">
+                {% if goal.parent_id %}
+                    <span>Есть родительская цель</span>
+                {% else %}
+                    <span>Корневая цель</span>
+                {% endif %}
+
+                {% if goal.status %}
+                    <span>
+                        Статус:
+                        {% if goal.status == "archived" %}
+                            в архиве
+                        {% elif goal.status == "active" %}
+                            активная
+                        {% elif goal.status == "planned" %}
+                            запланирована
+                        {% elif goal.status == "in_progress" %}
+                            в работе
+                        {% elif goal.status == "done" %}
+                            выполнена
+                        {% elif goal.status == "cancelled" %}
+                            отменена
+                        {% else %}
+                            {{ goal.status }}
+                        {% endif %}
+                    </span>
+                {% endif %}
+
+                {% if goal.priority %}
+                    <span>
+                        Приоритет:
+                        {% if goal.priority == "low" %}
+                            низкий
+                        {% elif goal.priority == "medium" %}
+                            средний
+                        {% elif goal.priority == "high" %}
+                            высокий
+                        {% else %}
+                            {{ goal.priority }}
+                        {% endif %}
+                    </span>
+                {% endif %}
+            </div>
+
+            {% if goal.description %}
+                <p class="goal-description">{{ goal.description }}</p>
+            {% else %}
+                <p class="goal-description goal-muted">Описание пока не добавлено.</p>
+            {% endif %}
+        </div>
+
+        <div class="goals-section">
+            <h3 class="goal-name">Дочерние элементы</h3>
+
+            {% if tree_root and tree_root.children %}
+                <ul class="goals-list">
+                    {% for child in tree_root.children recursive %}
+                        <li class="goals-item">
+                            <div class="goals-row">
+                                <div class="goals-main">
+                                    <h4 class="goals-name">
+                                        <a href="{{ url_for('goals.goal_detail', goal_id=child.id, workspace_id=workspace_id) }}">
+                                            {{ child.title }}
+                                        </a>
+                                    </h4>
+
+                                    <div class="goals-meta">
+                                        {% if child.kind %}
+                                            <span>
+                                                {% if child.kind == "goal" %}
+                                                    Цель
+                                                {% elif child.kind == "project" %}
+                                                    Проект
+                                                {% elif child.kind == "task" %}
+                                                    Задача
+                                                {% else %}
+                                                    {{ child.kind }}
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if child.status %}
+                                            <span>
+                                                {% if child.status == "archived" %}
+                                                    В архиве
+                                                {% elif child.status == "active" %}
+                                                    Активная
+                                                {% elif child.status == "planned" %}
+                                                    Запланирована
+                                                {% elif child.status == "in_progress" %}
+                                                    В работе
+                                                {% elif child.status == "done" %}
+                                                    Выполнена
+                                                {% elif child.status == "cancelled" %}
+                                                    Отменена
+                                                {% else %}
+                                                    {{ child.status }}
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if child.priority %}
+                                            <span>
+                                                {% if child.priority == "low" %}
+                                                    Низкий приоритет
+                                                {% elif child.priority == "medium" %}
+                                                    Средний приоритет
+                                                {% elif child.priority == "high" %}
+                                                    Высокий приоритет
+                                                {% else %}
+                                                    {{ child.priority }}
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if child.description %}
+                                        <p class="goals-description">{{ child.description }}</p>
+                                    {% else %}
+                                        <p class="goals-description goals-muted">Описание пока не добавлено.</p>
+                                    {% endif %}
+
+                                    {% if child.children %}
+                                        <div class="goals-tree-children">
+                                            <ul class="goals-list">
+                                                {{ loop(child.children) }}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="goals-side">
+                                    <a class="goals-button"
+                                       href="{{ url_for('goals.goal_detail', goal_id=child.id, workspace_id=workspace_id) }}">
+                                        Открыть
+                                    </a>
+                                    <a class="goals-button"
+                                       href="{{ url_for('goals.goal_move', goal_id=child.id, workspace_id=workspace_id) }}">
+                                        Переместить
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="goals-empty">
+                    <p>У этой цели пока нет дочерних элементов.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

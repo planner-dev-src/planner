@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование цели — Planner{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/goals.css') }}">
+{% endblock %}
+
+{% block page_top %}{% endblock %}
+
+{% block content %}
+<div class="goals-page">
+    <div class="goals-topbar">
+        <div>
+            <h1 class="goals-title">Редактирование цели</h1>
+            <p class="goals-subtitle">
+                Обновление параметров цели: название, описание, статус, приоритет и родитель.
+            </p>
+        </div>
+
+        <div class="goals-actions">
+            <a class="goals-button" href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                К карточке
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goal_structure', goal_id=goal.id, workspace_id=workspace_id) }}">
+                Структура
+            </a>
+        </div>
+    </div>
+
+    <div class="goals-card">
+        <form method="post" class="goal-form">
+            {{ form.hidden_tag() }}
+
+            <div class="goal-form-grid">
+                <div class="goal-form-row">
+                    <label class="goal-form-label" for="{{ form.title.id }}">{{ form.title.label.text }}</label>
+                    {{ form.title(class_="goal-form-input") }}
+                    {% if form.title.errors %}
+                        <div class="goal-form-errors">
+                            {% for error in form.title.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="goal-form-row">
+                    <label class="goal-form-label" for="{{ form.description.id }}">{{ form.description.label.text }}</label>
+                    {{ form.description(class_="goal-form-textarea", rows="6") }}
+                    {% if form.description.errors %}
+                        <div class="goal-form-errors">
+                            {% for error in form.description.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="goal-form-columns">
+                    <div class="goal-form-row">
+                        <label class="goal-form-label" for="{{ form.status.id }}">{{ form.status.label.text }}</label>
+                        {{ form.status(class_="goal-form-select") }}
+                        {% if form.status.errors %}
+                            <div class="goal-form-errors">
+                                {% for error in form.status.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="goal-form-row">
+                        <label class="goal-form-label" for="{{ form.priority.id }}">{{ form.priority.label.text }}</label>
+                        {{ form.priority(class_="goal-form-select") }}
+                        {% if form.priority.errors %}
+                            <div class="goal-form-errors">
+                                {% for error in form.priority.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="goal-form-row">
+                    <label class="goal-form-label" for="{{ form.parent_id.id }}">{{ form.parent_id.label.text }}</label>
+                    {{ form.parent_id(class_="goal-form-select") }}
+                    {% if form.parent_id.errors %}
+                        <div class="goal-form-errors">
+                            {% for error in form.parent_id.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="goals-actions">
+                {{ form.submit(class_="goals-button primary") }}
+                <a class="goals-button" href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

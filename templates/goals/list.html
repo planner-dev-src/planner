@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Цели — Planner{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/goals.css') }}">
+{% endblock %}
+
+{% block page_top %}{% endblock %}
+
+{% block content %}
+<div class="goals-page">
+    <div class="goals-topbar">
+        <div>
+            <h1 class="goals-title">Цели</h1>
+            <p class="goals-subtitle">
+                Список корневых целей, переход к карточке, структуре, клонированию и архиву.
+            </p>
+        </div>
+
+        <div class="goals-actions">
+            <a class="goals-button primary" href="{{ url_for('goals.goal_create', workspace_id=workspace_id) }}">
+                Новая цель
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goal_clone', workspace_id=workspace_id) }}">
+                Клонировать
+            </a>
+            <a class="goals-button" href="{{ url_for('goals.goals_archive', workspace_id=workspace_id) }}">
+                Архив
+            </a>
+        </div>
+    </div>
+
+    {% if goals %}
+        <div class="goals-card">
+            <ul class="goals-list">
+                {% for goal in goals %}
+                    <li class="goals-item">
+                        <div class="goals-row">
+                            <div class="goals-main">
+                                <h2 class="goals-name">
+                                    <a href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                                        {{ goal.title }}
+                                    </a>
+                                </h2>
+
+                                <div class="goals-meta">
+                                    {% if goal.kind %}
+                                        <span class="goals-badge">
+                                            {% if goal.kind == "goal" %}
+                                                Цель
+                                            {% elif goal.kind == "project" %}
+                                                Проект
+                                            {% elif goal.kind == "task" %}
+                                                Задача
+                                            {% else %}
+                                                {{ goal.kind }}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+
+                                    {% if goal.status %}
+                                        <span class="goals-badge">
+                                            {% if goal.status == "archived" %}
+                                                В архиве
+                                            {% elif goal.status == "active" %}
+                                                Активная
+                                            {% elif goal.status == "planned" %}
+                                                Запланирована
+                                            {% elif goal.status == "in_progress" %}
+                                                В работе
+                                            {% elif goal.status == "done" %}
+                                                Выполнена
+                                            {% elif goal.status == "cancelled" %}
+                                                Отменена
+                                            {% else %}
+                                                {{ goal.status }}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+
+                                    {% if goal.priority %}
+                                        <span>
+                                            Приоритет:
+                                            {% if goal.priority == "low" %}
+                                                низкий
+                                            {% elif goal.priority == "medium" %}
+                                                средний
+                                            {% elif goal.priority == "high" %}
+                                                высокий
+                                            {% else %}
+                                                {{ goal.priority }}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+
+                                    <span>Корневая цель</span>
+                                </div>
+
+                                {% if goal.description %}
+                                    <p class="goals-description">
+                                        {{ goal.description }}
+                                    </p>
+                                {% else %}
+                                    <p class="goals-description goals-muted">
+                                        Описание пока не добавлено.
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div class="goals-side">
+                                <a class="goals-button"
+                                   href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                                    Открыть
+                                </a>
+
+                                <a class="goals-button"
+                                   href="{{ url_for('goals.goal_structure', goal_id=goal.id, workspace_id=workspace_id) }}">
+                                    Структура
+                                </a>
+
+                                {% if goal.status != "archived" %}
+                                    <a class="goals-button"
+                                       href="{{ url_for('goals.goal_edit', goal_id=goal.id, workspace_id=workspace_id) }}">
+                                        Редактировать
+                                    </a>
+
+                                    <a class="goals-button"
+                                       href="{{ url_for('goals.goal_clone', source_goal_id=goal.id, workspace_id=workspace_id) }}">
+                                        Клонировать
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="goals-card">
+            <div class="goals-empty">
+                <p>Активных целей пока нет.</p>
+                <p>
+                    <a class="goals-button primary" href="{{ url_for('goals.goal_create', workspace_id=workspace_id) }}">
+                        Создать первую цель
+                    </a>
+                </p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

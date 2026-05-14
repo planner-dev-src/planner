@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Клонирование цели — Planner{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/goals.css') }}">
+{% endblock %}
+
+{% block page_top %}{% endblock %}
+
+{% block content %}
+<div class="goals-page narrow">
+    <div class="goals-backlinks">
+        <a href="{{ url_for('goals.goals_list', workspace_id=workspace_id) }}">К активным целям</a>
+        |
+        <a href="{{ url_for('goals.goals_archive', workspace_id=workspace_id) }}">К архиву</a>
+        {% if preselected_goal %}
+            |
+            <a href="{{ url_for('goals.goal_detail', goal_id=preselected_goal.id, workspace_id=workspace_id) }}">
+                К исходной цели
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="goals-topbar">
+        <div>
+            <h1 class="goals-title">Клонирование цели</h1>
+            <p class="goals-subtitle">
+                {% if preselected_goal %}
+                    Источник: {{ preselected_goal.title }}
+                {% else %}
+                    Создание копии выбранной цели в текущем workspace.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% if form.errors %}
+        <div class="form-errors-summary">
+            <p><strong>Форма не прошла проверку.</strong></p>
+            <ul>
+                {% for field_name, errors in form.errors.items() %}
+                    {% for error in errors %}
+                        <li>{{ field_name }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="goals-card">
+        <div class="goals-section">
+            <form method="post" action="" class="goals-form">
+                {{ form.hidden_tag() }}
+
+                <div class="goals-form-grid">
+                    {% if is_preselected and preselected_goal %}
+                        {{ form.fixed_source_goal_id() }}
+
+                        <div class="goals-field full">
+                            <label class="goals-label">Исходная цель</label>
+                            <div class="goals-static-field">
+                                <a href="{{ url_for('goals.goal_detail', goal_id=preselected_goal.id, workspace_id=workspace_id) }}">
+                                    {{ preselected_goal.title }}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="goals-field full">
+                            <a class="goals-button"
+                               href="{{ url_for('goals.goal_clone', workspace_id=workspace_id, change_source=1) }}">
+                                Выбрать другую цель
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="goals-field full">
+                            <label class="goals-label" for="{{ form.source_goal_id.id }}">
+                                {{ form.source_goal_id.label.text }}
+                            </label>
+                            {{ form.source_goal_id(class_='goals-select') }}
+                            {% if form.source_goal_id.errors %}
+                                {% for error in form.source_goal_id.errors %}
+                                    <div class="field-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="goals-field full">
+                        <label class="goals-label" for="{{ form.new_root_title.id }}">
+                            {{ form.new_root_title.label.text }}
+                        </label>
+                        {{ form.new_root_title(class_='goals-input') }}
+                        {% if form.new_root_title.errors %}
+                            {% for error in form.new_root_title.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="goals-actions">
+                    {{ form.submit(class_='goals-button primary') }}
+                    <a class="goals-button"
+                       href="{% if preselected_goal %}{{ url_for('goals.goal_detail', goal_id=preselected_goal.id, workspace_id=workspace_id) }}{% else %}{{ url_for('goals.goals_list', workspace_id=workspace_id) }}{% endif %}">
+                        Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

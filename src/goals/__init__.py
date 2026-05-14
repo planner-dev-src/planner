@@ -9,6 +9,6 @@ goals_bp = Blueprint(
 
 from . import routes  # noqa: E402
 
-
 def init_app(app):
+    """Опциональный helper, если хочется инициализировать по модульной схеме."""
     app.register_blueprint(goals_bp)

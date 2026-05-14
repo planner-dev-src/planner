@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Перемещение цели — {{ goal.title }}{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/goals.css') }}">
+{% endblock %}
+
+{% block page_top %}{% endblock %}
+
+{% block content %}
+<div class="goals-page narrow">
+    <div class="goals-backlinks">
+        <a href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">К карточке цели</a>
+        |
+        <a href="{{ url_for('goals.goal_structure', goal_id=goal.id, workspace_id=workspace_id) }}">К структуре</a>
+    </div>
+
+    <div class="goals-topbar">
+        <div>
+            <h1 class="goals-title">Перемещение цели</h1>
+            <p class="goals-subtitle">{{ goal.title }}</p>
+        </div>
+    </div>
+
+    {% if form.errors %}
+        <div class="form-errors-summary">
+            <p><strong>Форма не прошла проверку.</strong></p>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label.text }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="goals-card">
+        <div class="goals-section">
+            <form method="post" action="" class="goals-form">
+                {{ form.hidden_tag() }}
+
+                <div class="goals-form-grid">
+                    <div class="goals-field full">
+                        <label class="goals-label" for="{{ form.new_parent_id.id }}">
+                            {{ form.new_parent_id.label.text }}
+                        </label>
+                        {{ form.new_parent_id(class_='goals-select') }}
+                        {% if form.new_parent_id.errors %}
+                            {% for error in form.new_parent_id.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="goals-actions">
+                    {{ form.submit(class_='goals-button primary') }}
+                    <a class="goals-button" href="{{ url_for('goals.goal_detail', goal_id=goal.id, workspace_id=workspace_id) }}">
+                        Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
